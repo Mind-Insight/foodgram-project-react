@@ -1,3 +1,13 @@
 from django.db import models
 
-# Create your models here.
+
+class Recipe(models.Model):
+    ...
+
+
+class Tag(models.Model):
+    ...
+
+
+class Ingredient(models.Model):
+    ...
