@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.exceptions import ValidationError
 
 from constants import GUEST, AUTHORIZED, ADMIN
 
@@ -31,22 +32,51 @@ class FoodgramUser(AbstractUser):
         default=Role.GUEST,
     )
 
+    def clean(self):
+        if len(set([self.username, self.name, self.surname])) != 3:
+            raise ValidationError(
+                "Поля username, name, surname должны быть уникальными в пределах одной записи"
+            )
+        super().clean()
+        self.email = self.__class__.objects.normalize_email(self.email)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+        indexes = [
+            models.Index(
+                fields=["name", "surname"],
+                name="user_index_fields",
+            )
+        ]
+
     def __str__(self) -> str:
         return self.username
 
 
 class Following(models.Model):
-    user_id = models.ForeignKey(FoodgramUser, related_name="following")
-    following_user_id = models.ForeignKey(FoodgramUser, related_name="followers")
-    created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(
+        FoodgramUser,
+        on_delete=models.CASCADE,
+        related_name="following",
+    )
+    following_user = models.ForeignKey(
+        FoodgramUser,
+        on_delete=models.CASCADE,
+        related_name="followers",
+    )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["used_id", "following_user_id"],
-                name="unique_followers",
+                fields=["user", "following_user"],
+                name="unique_followers_constratints",
             )
         ]
 
     def __str__(self) -> str:
-        return f"{self.user_id} follows {self.following_user_id}."
+        return f"{self.user} follows {self.following_user}."

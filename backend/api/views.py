@@ -10,9 +10,3 @@ User = get_user_model()
 
 class UserRegistrationViewSet(viewsets.ModelViewset):
     serializer_class = UserRegistrationSerializer
-
-
-class UserFollowingViewSet(viewsets.ModelViewset):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-    serializer_class = UserFollowingSerializer
-    queryset = Following.objects.all()

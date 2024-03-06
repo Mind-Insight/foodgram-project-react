@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +21,7 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",
     "api.apps.ApiConfig",
     "recipes.apps.RecipesConfig",
-    #
+    # other apps
     "djoser",
     "rest_framework",
     "rest_framework.authtoken",
@@ -112,3 +113,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # My settings
 
 AUTH_USER_MODEL = "users.FoodgramUser"
+
+MEDIA_ROOT = "/media/"
+MEDIA_URL = os.path.join(BASE_DIR, "media/")
