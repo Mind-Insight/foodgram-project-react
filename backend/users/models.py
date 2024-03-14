@@ -17,11 +17,11 @@ class FoodgramUser(AbstractUser):
         max_length=255,
         unique=True,
     )
-    name = models.CharField(
+    first_name = models.CharField(
         "Имя",
         max_length=100,
     )
-    surname = models.CharField(
+    last_name = models.CharField(
         "Фамилия",
         max_length=100,
     )
@@ -31,14 +31,15 @@ class FoodgramUser(AbstractUser):
         choices=Role.choices,
         default=Role.GUEST,
     )
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username", "first_name", "last_name"]
 
     def clean(self):
-        if len(set([self.username, self.name, self.surname])) != 3:
+        if len(set([self.username, self.first_name, self.last_name])) != 3:
             raise ValidationError(
                 "Поля username, name, surname должны быть уникальными в пределах одной записи"
             )
         super().clean()
-        self.email = self.__class__.objects.normalize_email(self.email)
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -49,7 +50,7 @@ class FoodgramUser(AbstractUser):
         verbose_name_plural = "Пользователи"
         indexes = [
             models.Index(
-                fields=["name", "surname"],
+                fields=["first_name", "last_name"],
                 name="user_index_fields",
             )
         ]

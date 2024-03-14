@@ -19,7 +19,8 @@ class Recipe(models.Model):
     )
     image = models.ImageField(
         "Картинка",
-        upload_to="media/",
+        upload_to="recipes/images/",
+        default=None,
     )
     description = models.TextField(
         "Описание",
@@ -31,7 +32,7 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(
         "Tag",
-        related_name="recipes_tag",
+        related_name="recipe_tags",
     )
     time = models.SmallIntegerField(
         "Время приготовления",
