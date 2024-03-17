@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "djoser",
     "rest_framework",
     "rest_framework.authtoken",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -35,6 +36,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 DJOSER = {
@@ -45,7 +47,7 @@ DJOSER = {
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
@@ -53,6 +55,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
 }
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = "foodgram.urls"
 
@@ -106,13 +110,14 @@ USE_L10N = True
 
 USE_TZ = True
 
-STATIC_URL = "/static/"
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # My settings
 
 AUTH_USER_MODEL = "users.FoodgramUser"
 
-MEDIA_ROOT = "/media/"
-MEDIA_URL = os.path.join(BASE_DIR, "media/")
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media/'
+
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'collected_static'
