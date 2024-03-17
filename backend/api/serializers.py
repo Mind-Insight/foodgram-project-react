@@ -7,6 +7,8 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 
 from users.models import Following
+from recipes.models import Recipe, Tag, Ingredient, RecipeIngredient
+from .mixins import RecipeSerializerMixin
 
 User = get_user_model()
 
@@ -38,8 +40,52 @@ class UserRegistrationSerializer(UserCreateSerializer):
         model = User
         fields = (
             "username",
-            "name",
-            "surname",
+            "first_name",
+            "last_name",
             "email",
             "password",
         )
+
+
+class TagSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Tag
+        fields = (
+            "tag_title",
+            "color",
+            "slug",
+        )
+
+
+class IngredientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ingredient
+        fields = (
+            "title",
+            "units",
+        )
+
+
+class RecipeReadSerializer(RecipeSerializerMixin):
+    ingredients = IngredientSerializer(many=True)
+    tags = TagSerializer(many=True)
+    image = Base64ImageField(allow_null=True)
+
+
+class RecipeSerializer(RecipeSerializerMixin):
+    ingredients = IngredientSerializer(many=True)
+    image = Base64ImageField(allow_null=True)
+
+    def create(self, validated_data):
+        ingredients = validated_data.pop("ingredients")
+        tags = validated_data.pop("tags")
+        recipe = Recipe.objects.create(**validated_data)
+        for ingredient in ingredients:
+            cur_ingredient, _ = Ingredient.objects.get_or_create(**ingredient)
+            RecipeIngredient.objects.create(
+                recipe=recipe, ingredient=cur_ingredient, amount=10
+            )
+        for tag in tags:
+            recipe.tags.add(tag)
+        return recipe
