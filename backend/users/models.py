@@ -3,6 +3,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 
 from constants import GUEST, AUTHORIZED, ADMIN
+from .managers import CustomUserManager
 
 
 class FoodgramUser(AbstractUser):
@@ -31,6 +32,7 @@ class FoodgramUser(AbstractUser):
         choices=Role.choices,
         default=Role.GUEST,
     )
+    objects = CustomUserManager()
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username", "first_name", "last_name"]
 
