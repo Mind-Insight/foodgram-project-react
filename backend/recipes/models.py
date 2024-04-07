@@ -48,7 +48,7 @@ class Recipe(models.Model):
         ordering = ("name",)
 
     def __str__(self) -> str:
-        return self.title
+        return self.name
 
 
 class Tag(models.Model):
@@ -80,6 +80,9 @@ class Tag(models.Model):
         verbose_name = "Тег"
         verbose_name_plural = "Теги"
         ordering = ("name",)
+
+    def __str__(self):
+        return self.name
 
 
 class Ingredient(models.Model):
