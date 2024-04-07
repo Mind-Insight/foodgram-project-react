@@ -67,7 +67,7 @@ class Following(models.Model):
         on_delete=models.CASCADE,
         related_name="following",
     )
-    following_user = models.ForeignKey(
+    author = models.ForeignKey(
         FoodgramUser,
         on_delete=models.CASCADE,
         related_name="followers",
@@ -76,10 +76,10 @@ class Following(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["user", "following_user"],
+                fields=["user", "author"],
                 name="unique_followers_constratints",
             )
         ]
 
     def __str__(self) -> str:
-        return f"{self.user} follows {self.following_user}."
+        return f"{self.user} follows {self.author}."

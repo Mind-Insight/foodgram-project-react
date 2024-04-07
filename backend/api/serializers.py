@@ -34,25 +34,27 @@ class Hex2NameColor(serializers.Field):
         return data
 
 
-class UserRegistrationSerializer(UserCreateSerializer):
+class UserSerializer(UserCreateSerializer):
+    is_subscribed = serializers.BooleanField(default=False)
 
     class Meta(UserCreateSerializer.Meta):
         model = User
         fields = (
+            "email",
+            "id",
             "username",
             "first_name",
             "last_name",
-            "email",
-            "password",
+            "is_subscribed"
         )
-
 
 class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tag
         fields = (
-            "tag_title",
+            "id",
+            "name",
             "color",
             "slug",
         )
@@ -62,20 +64,37 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = (
+            "id",
             "title",
-            "units",
+            "measurement_unit",
+        )
+
+
+class RecipeIngredientSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source="ingredient.title")
+    measurement_unit = serializers.CharField(source="ingredient.measurement_unit")
+
+    class Meta:
+        model = RecipeIngredient
+        fields = (
+            "id",
+            "title",
+            "measurement_unit",
+            "amount",
         )
 
 
 class RecipeReadSerializer(RecipeSerializerMixin):
-    ingredients = IngredientSerializer(many=True)
+    ingredients = RecipeIngredientSerializer(source="recipeingredient_set", many=True)
     tags = TagSerializer(many=True)
     image = Base64ImageField(allow_null=True)
+    author = UserSerializer()
 
 
 class RecipeSerializer(RecipeSerializerMixin):
-    ingredients = IngredientSerializer(many=True)
+    ingredients = RecipeIngredientSerializer(source="recipeingredient_set", many=True)
     image = Base64ImageField(allow_null=True)
+    author = UserSerializer()
 
     def create(self, validated_data):
         ingredients = validated_data.pop("ingredients")

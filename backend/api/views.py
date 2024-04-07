@@ -3,6 +3,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
 from django.contrib.auth import get_user_model
 
 from users.models import Following
@@ -15,7 +17,7 @@ from recipes.models import (
     ShoppingList,
 )
 from .serializers import (
-    UserRegistrationSerializer,
+    UserSerializer,
     RecipeSerializer,
     TagSerializer,
     IngredientSerializer,
@@ -25,12 +27,24 @@ from .serializers import (
 User = get_user_model()
 
 
-class UserRegistrationViewSet(viewsets.ModelViewSet):
-    serializer_class = UserRegistrationSerializer
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    @action(
+        detail=False,
+        methods=["get"],
+        permission_classes=[IsAuthenticated],
+    )
+    def me(self, request):
+        user = self.get_queryset().get(id=request.user.id)
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
+    http_method_names = ["get", "post", "delete", "patch"]
 
     def get_serializer_class(self):
         if self.action in ("retrieve", "list"):

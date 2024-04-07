@@ -4,22 +4,30 @@ from recipes.models import Recipe
 
 
 class RecipeSerializerMixin(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(slug_field="username", read_only=True)
     image_url = serializers.SerializerMethodField(
         "get_image_url",
         read_only=True,
+    )
+    is_favorited = serializers.BooleanField(
+        default=False,
+    )
+    is_in_shopping_cart = serializers.BooleanField(
+        default=False,
     )
 
     class Meta:
         model = Recipe
         fields = (
-            "author",
-            "title",
-            "image",
-            "description",
-            "ingredients",
+            "id",
             "tags",
-            "time",
+            "author",
+            "ingredients",
+            "is_favorited",
+            "is_in_shopping_cart",
+            "name",
+            "image",
+            "text",
+            "cooking_time",
         )
         read_only_fields = ("author",)
 

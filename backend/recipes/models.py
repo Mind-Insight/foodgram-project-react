@@ -13,7 +13,7 @@ class Recipe(models.Model):
         verbose_name="Автор рецепта",
         related_name="recipes",
     )
-    title = models.CharField(
+    name = models.CharField(
         "Название",
         max_length=255,
     )
@@ -22,7 +22,7 @@ class Recipe(models.Model):
         upload_to="recipes/images/",
         default=None,
     )
-    description = models.TextField(
+    text = models.TextField(
         "Описание",
     )
     ingredients = models.ManyToManyField(
@@ -34,7 +34,7 @@ class Recipe(models.Model):
         "Tag",
         related_name="recipe_tags",
     )
-    time = models.SmallIntegerField(
+    cooking_time = models.SmallIntegerField(
         "Время приготовления",
         validators=[
             MinValueValidator(5),
@@ -45,13 +45,14 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
+        ordering = ("name",)
 
     def __str__(self) -> str:
         return self.title
 
 
 class Tag(models.Model):
-    tag_title = models.CharField(
+    name = models.CharField(
         "Тег",
         max_length=255,
         unique=True,
@@ -78,6 +79,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = "Тег"
         verbose_name_plural = "Теги"
+        ordering = ("name",)
 
 
 class Ingredient(models.Model):
@@ -85,7 +87,7 @@ class Ingredient(models.Model):
         "Ингредиент",
         max_length=255,
     )
-    units = models.CharField(
+    measurement_unit = models.CharField(
         "Единицы измерения",
         max_length=10,
     )
@@ -93,6 +95,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = "Ингредиент"
         verbose_name_plural = "Ингредиенты"
+        ordering = ("title",)
 
     def __str__(self) -> str:
         return self.title

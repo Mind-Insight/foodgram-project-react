@@ -25,7 +25,6 @@ INSTALLED_APPS = [
     "djoser",
     "rest_framework",
     "rest_framework.authtoken",
-    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -36,12 +35,11 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
 ]
 
 DJOSER = {
     "SERIALIZERS": {
-        "user_create": "api.serializers.UserRegistrationSerializer",
+        "user_create": "api.serializers.UserSerializer",
     },
 }
 
@@ -55,8 +53,6 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
 }
-
-CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = "foodgram.urls"
 
