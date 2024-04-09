@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from django.contrib.auth import get_user_model
 
@@ -24,6 +25,7 @@ from .serializers import (
     IngredientSerializer,
     RecipeReadSerializer,
 )
+from .filters import IngredientFilter
 
 User = get_user_model()
 
@@ -68,7 +70,11 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
 
-class IngredientViewSet(viewsets.ModelViewSet):
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
+    permission_classes = [AllowAny]
+    search_field = ("name",)
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = IngredientFilter
