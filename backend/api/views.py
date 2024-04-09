@@ -2,8 +2,9 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
+from djoser.views import UserViewSet
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action
 from django.contrib.auth import get_user_model
 
@@ -17,7 +18,7 @@ from recipes.models import (
     ShoppingList,
 )
 from .serializers import (
-    UserSerializer,
+    CustomUserSerializer,
     RecipeSerializer,
     TagSerializer,
     IngredientSerializer,
@@ -27,19 +28,19 @@ from .serializers import (
 User = get_user_model()
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+class UserViewSet(UserViewSet):
+
+    def get_queryset(self):
+        return User.objects.all()
 
     @action(
+        ["GET"],
         detail=False,
-        methods=["get"],
         permission_classes=[IsAuthenticated],
     )
     def me(self, request):
-        user = self.get_queryset().get(id=request.user.id)
-        serializer = self.get_serializer(user)
-        return Response(serializer.data)
+        serializer = CustomUserSerializer(request.user)
+        return Response(data=serializer.data)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -64,7 +65,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
+    queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    pagination_class = None

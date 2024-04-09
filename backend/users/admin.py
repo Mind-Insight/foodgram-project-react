@@ -3,27 +3,21 @@ from .models import FoodgramUser
 from django.contrib import admin
 
 
-class FoodgramUserAdmin(UserAdmin):
-    model = FoodgramUser
-    fieldsets = UserAdmin.fieldsets + (
-        (
-            None,
-            {"fields": ("role",)},
-        ),
-    )
-    add_fieldsets = UserAdmin.add_fieldsets + (
-        (
-            None,
-            {"fields": ("role",)},
-        ),
-    )
+@admin.register(FoodgramUser)
+class UserAdmin(admin.ModelAdmin):
     list_display = (
-        "username",
-        "email",
-        "first_name",
-        "last_name",
-        "role",
+        'pk',
+        'username',
+        'email',
+        'first_name',
+        'last_name',
+    )
+    list_editable = (
+        'username',
+        'email',
+        'first_name',
+        'last_name',
     )
 
-
-admin.site.register(FoodgramUser, FoodgramUserAdmin)
+    list_per_page = 10
+    list_filter = ('email', 'username')

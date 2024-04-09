@@ -9,10 +9,11 @@ class RecipeSerializerMixin(serializers.ModelSerializer):
         read_only=True,
     )
     is_favorited = serializers.BooleanField(
-        default=False,
+        default=False, read_only=True,
     )
     is_in_shopping_cart = serializers.BooleanField(
         default=False,
+        read_only=True,
     )
 
     class Meta:

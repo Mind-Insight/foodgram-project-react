@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     "recipes.apps.RecipesConfig",
     # other apps
     "djoser",
+    "django_filters",
     "rest_framework",
     "rest_framework.authtoken",
 ]
@@ -37,20 +38,36 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+
+AUTH_USER_MODEL = "users.FoodgramUser"
+
 DJOSER = {
     "SERIALIZERS": {
-        "user_create": "api.serializers.UserSerializer",
+        "user": "api.serializers.CustomUserSerializer",
+        "current_user": "api.serializers.CustomUserSerializer",
     },
+    "PERMISSIONS": {
+        "user_list": [
+            "rest_framework.permissions.AllowAny",
+        ],
+        "user": [
+            "rest_framework.permissions.AllowAny",
+        ],
+    },
+    "HIDE_USERS": False,
 }
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
-        'rest_framework.permissions.AllowAny',
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 10,
 }
 
@@ -110,10 +127,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # My settings
 
-AUTH_USER_MODEL = "users.FoodgramUser"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media/"
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media/'
-
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'collected_static'
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "collected_static"

@@ -19,7 +19,7 @@ class Recipe(models.Model):
     )
     image = models.ImageField(
         "Картинка",
-        upload_to="recipes/images/",
+        upload_to="recipes/",
         default=None,
     )
     text = models.TextField(
@@ -86,7 +86,7 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    title = models.CharField(
+    name = models.CharField(
         "Ингредиент",
         max_length=255,
     )
@@ -98,10 +98,10 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = "Ингредиент"
         verbose_name_plural = "Ингредиенты"
-        ordering = ("title",)
+        ordering = ("name",)
 
     def __str__(self) -> str:
-        return self.title
+        return self.name
 
 
 class RecipeIngredient(models.Model):

@@ -12,9 +12,9 @@ class CustomUserManager(BaseUserManager):
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Superuser must have is_superuser=True.")
 
-        return self._create_user(email, first_name, last_name, password, **extra_fields)
+        return self.create_user(email, first_name, last_name, password, **extra_fields)
 
-    def _create_user(self, email, first_name, last_name, password, **extra_fields):
+    def create_user(self, email, first_name, last_name, password, **extra_fields):
         if not email:
             raise ValueError("The Email field must be set")
         extra_fields.setdefault("role", "guest")

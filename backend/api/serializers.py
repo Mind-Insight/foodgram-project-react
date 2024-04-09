@@ -2,7 +2,7 @@ import webcolors
 
 from base64 import b64decode
 from rest_framework import serializers
-from djoser.serializers import UserCreateSerializer
+from djoser.serializers import UserSerializer
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 
@@ -34,19 +34,12 @@ class Hex2NameColor(serializers.Field):
         return data
 
 
-class UserSerializer(UserCreateSerializer):
-    is_subscribed = serializers.BooleanField(default=False)
+class CustomUserSerializer(UserSerializer):
+    is_subscribed = serializers.BooleanField(read_only=True, default=False)
 
-    class Meta(UserCreateSerializer.Meta):
-        model = User
-        fields = (
-            "email",
-            "id",
-            "username",
-            "first_name",
-            "last_name",
-            "is_subscribed"
-        )
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields + ("is_subscribed",)
+
 
 class TagSerializer(serializers.ModelSerializer):
 
@@ -65,46 +58,71 @@ class IngredientSerializer(serializers.ModelSerializer):
         model = Ingredient
         fields = (
             "id",
-            "title",
+            "name",
             "measurement_unit",
         )
 
 
-class RecipeIngredientSerializer(serializers.ModelSerializer):
-    title = serializers.CharField(source="ingredient.title")
+class RecipeIngredientWriteField(serializers.ModelSerializer):
+    id = serializers.IntegerField(source="ingredient")
+
+    class Meta:
+        model = RecipeIngredient
+        fields = (
+            "id",
+            "amount",
+        )
+
+
+class RecipeIngredientReadField(serializers.ModelSerializer):
+    id = serializers.IntegerField(source="ingredient.id")
+    name = serializers.CharField(source="ingredient.name")
     measurement_unit = serializers.CharField(source="ingredient.measurement_unit")
 
     class Meta:
         model = RecipeIngredient
         fields = (
             "id",
-            "title",
-            "measurement_unit",
             "amount",
+            "name",
+            "measurement_unit",
         )
 
 
 class RecipeReadSerializer(RecipeSerializerMixin):
-    ingredients = RecipeIngredientSerializer(source="recipeingredient_set", many=True)
+    ingredients = RecipeIngredientReadField(source="recipeingredient_set", many=True)
     tags = TagSerializer(many=True)
     image = Base64ImageField(allow_null=True)
-    author = UserSerializer()
+    author = UserSerializer(read_only=True)
 
 
 class RecipeSerializer(RecipeSerializerMixin):
-    ingredients = RecipeIngredientSerializer(source="recipeingredient_set", many=True)
+    ingredients = RecipeIngredientWriteField(many=True, write_only=True)
     image = Base64ImageField(allow_null=True)
-    author = UserSerializer()
+    author = UserSerializer(read_only=True)
 
     def create(self, validated_data):
-        ingredients = validated_data.pop("ingredients")
+        ingredients_data = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
         recipe = Recipe.objects.create(**validated_data)
-        for ingredient in ingredients:
-            cur_ingredient, _ = Ingredient.objects.get_or_create(**ingredient)
+        available_ids = [
+            ingredient_data.get("ingredient") for ingredient_data in ingredients_data
+        ]
+        ingredients = Ingredient.objects.all().filter(id__in=available_ids)
+
+        for ingredient_data in ingredients_data:
+            cur_ingredient = ingredients.get(id=ingredient_data.get("ingredient"))
+            amount = ingredient_data.get("amount")
             RecipeIngredient.objects.create(
-                recipe=recipe, ingredient=cur_ingredient, amount=10
+                recipe=recipe, ingredient=cur_ingredient, amount=amount
             )
+
         for tag in tags:
             recipe.tags.add(tag)
+
         return recipe
+
+    def to_representation(self, instance):
+        if self.context["request"].method in ["POST", "PATCH"]:
+            instance = self.context["view"].get_queryset().get(id=instance.id)
+        return RecipeReadSerializer(instance=instance, context=self.context).data

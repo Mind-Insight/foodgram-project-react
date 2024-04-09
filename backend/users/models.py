@@ -1,21 +1,16 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.contrib.auth.models import UserManager
 from django.core.exceptions import ValidationError
 
-from constants import GUEST, AUTHORIZED, ADMIN
 from .managers import CustomUserManager
 
 
 class FoodgramUser(AbstractUser):
 
-    class Role(models.TextChoices):
-        GUEST = GUEST, "гость"
-        AUTHORIZED = AUTHORIZED, "авторизованный пользователь"
-        ADMIN = ADMIN, "админ"
-
     email = models.EmailField(
         "Электронная почта",
-        max_length=255,
+        max_length=254,
         unique=True,
     )
     first_name = models.CharField(
@@ -26,13 +21,6 @@ class FoodgramUser(AbstractUser):
         "Фамилия",
         max_length=100,
     )
-    role = models.CharField(
-        "Роль",
-        max_length=20,
-        choices=Role.choices,
-        default=Role.GUEST,
-    )
-    objects = CustomUserManager()
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username", "first_name", "last_name"]
 
@@ -56,9 +44,6 @@ class FoodgramUser(AbstractUser):
                 name="user_index_fields",
             )
         ]
-
-    def __str__(self) -> str:
-        return self.username
 
 
 class Following(models.Model):
