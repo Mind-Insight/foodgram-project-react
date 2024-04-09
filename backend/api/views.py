@@ -25,7 +25,7 @@ from .serializers import (
     IngredientSerializer,
     RecipeReadSerializer,
 )
-from .filters import IngredientFilter
+from .filters import IngredientFilter, RecipeFilter
 
 User = get_user_model()
 
@@ -48,6 +48,7 @@ class UserViewSet(UserViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     http_method_names = ["get", "post", "delete", "patch"]
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.action in ("retrieve", "list"):

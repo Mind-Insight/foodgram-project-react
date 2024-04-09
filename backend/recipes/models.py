@@ -15,7 +15,7 @@ class Recipe(models.Model):
     )
     name = models.CharField(
         "Название",
-        max_length=255,
+        max_length=200,
     )
     image = models.ImageField(
         "Картинка",
@@ -37,7 +37,7 @@ class Recipe(models.Model):
     cooking_time = models.SmallIntegerField(
         "Время приготовления",
         validators=[
-            MinValueValidator(5),
+            MinValueValidator(1),
             MaxValueValidator(420),
         ],
     )

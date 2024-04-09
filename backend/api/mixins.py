@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from recipes.models import Recipe
+from .validators import IngredientsValidator, TagsValidator
 
 
 class RecipeSerializerMixin(serializers.ModelSerializer):
@@ -31,6 +32,7 @@ class RecipeSerializerMixin(serializers.ModelSerializer):
             "cooking_time",
         )
         read_only_fields = ("author",)
+        validators = [IngredientsValidator, TagsValidator]
 
     def get_image_url(self, obj):
         if obj.image:

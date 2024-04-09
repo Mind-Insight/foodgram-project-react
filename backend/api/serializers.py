@@ -4,6 +4,9 @@ from base64 import b64decode
 from rest_framework import serializers
 from djoser.serializers import UserSerializer
 from django.contrib.auth import get_user_model
+from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.response import Response
 from django.core.files.base import ContentFile
 
 from users.models import Following
@@ -92,37 +95,68 @@ class RecipeIngredientReadField(serializers.ModelSerializer):
 class RecipeReadSerializer(RecipeSerializerMixin):
     ingredients = RecipeIngredientReadField(source="recipeingredient_set", many=True)
     tags = TagSerializer(many=True)
-    image = Base64ImageField(allow_null=True)
+    image = Base64ImageField()
     author = UserSerializer(read_only=True)
 
 
 class RecipeSerializer(RecipeSerializerMixin):
     ingredients = RecipeIngredientWriteField(many=True, write_only=True)
-    image = Base64ImageField(allow_null=True)
+    image = Base64ImageField()
     author = UserSerializer(read_only=True)
+
+    def validate(self, data):
+        if self.context["request"].method in ["POST", "PATCH"]:
+            if (
+                self.instance is not None
+                and self.instance.author != self.context["request"].user
+            ):
+                raise PermissionDenied("Вы не можете обновлять чужой рецепт.")
+        return data
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop("ingredients")
-        tags = validated_data.pop("tags")
+        tags_data = validated_data.pop("tags")
+        all_id = set(
+            ingredient_data["ingredient"] for ingredient_data in ingredients_data
+        )
+        all_ingredients = Ingredient.objects.filter(id__in=all_id)
+        if not all_ingredients:
+            raise serializers.ValidationError("err")
         recipe = Recipe.objects.create(**validated_data)
-        available_ids = [
-            ingredient_data.get("ingredient") for ingredient_data in ingredients_data
-        ]
-        ingredients = Ingredient.objects.all().filter(id__in=available_ids)
-
-        for ingredient_data in ingredients_data:
-            cur_ingredient = ingredients.get(id=ingredient_data.get("ingredient"))
-            amount = ingredient_data.get("amount")
-            RecipeIngredient.objects.create(
-                recipe=recipe, ingredient=cur_ingredient, amount=amount
+        recipe_ingredients = [
+            RecipeIngredient(
+                recipe=recipe,
+                ingredient=all_ingredients.get(id=ingredient_data["ingredient"]),
+                amount=ingredient_data["amount"],
             )
-
-        for tag in tags:
-            recipe.tags.add(tag)
-
+            for ingredient_data in ingredients_data
+        ]
+        RecipeIngredient.objects.bulk_create(recipe_ingredients)
+        recipe.tags.set(tags_data)
         return recipe
 
+    def update(self, instance, validated_data):
+        tags = validated_data.get("tags")
+        ingredients_data = validated_data.get("ingredients")
+        all_ingredients = Ingredient.objects.all().filter(
+            id__in=[ingredient.get("ingredient") for ingredient in ingredients_data]
+        )
+        if not all_ingredients:
+            raise serializers.ValidationError("Ингредиенты пустые.")
+        RecipeIngredient.objects.bulk_create(
+            [
+                RecipeIngredient(
+                    recipe=instance,
+                    ingredient=all_ingredients.get(id=ingredient.get("ingredient")),
+                    amount=ingredient.get("amount"),
+                )
+                for ingredient in ingredients_data
+            ]
+        )
+        instance.tags.set(tags)
+        instance.save()
+        return instance
+
     def to_representation(self, instance):
-        if self.context["request"].method in ["POST", "PATCH"]:
-            instance = self.context["view"].get_queryset().get(id=instance.id)
-        return RecipeReadSerializer(instance=instance, context=self.context).data
+        serializer = RecipeReadSerializer(instance)
+        return serializer.data
