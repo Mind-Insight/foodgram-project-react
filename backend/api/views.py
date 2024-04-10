@@ -28,6 +28,8 @@ from .serializers import (
     IngredientSerializer,
     RecipeReadSerializer,
     FollowingSerializer,
+    FavoriteSerializer,
+    ShoppingListSerializer,
 )
 from .filters import IngredientFilter, RecipeFilter
 
@@ -55,10 +57,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        if self.action in ("retrieve", "list"):
+        if self.request.method == "GET":
             return RecipeReadSerializer
-        else:
-            return RecipeSerializer
+        return RecipeSerializer
 
     def get_recipe(self):
         return Recipe.objects.get(pk=self.kwargs.get("pk"))
@@ -95,7 +96,7 @@ class FollowingViewSet(viewsets.ModelViewSet):
             Following.objects.filter(user=self.request.user, author=OuterRef("pk"))
             .values("author")
             .annotate(exists=Count("pk"))
-            .values("exists")
+            .values("exists")[:1]
         )
 
         return Following.objects.filter(user=self.request.user).annotate(
@@ -114,3 +115,63 @@ class FollowingViewSet(viewsets.ModelViewSet):
         return get_object_or_404(
             Following.objects, user=self.request.user, author=self.get_following()
         )
+
+
+class FavoriteViewSet(viewsets.ModelViewSet):
+    serializer_class = FavoriteSerializer
+    queryset = Favorite.objects.select_related("user", "recipe")
+    http_method_names = ["post", "delete"]
+    permission_classes = [IsAuthenticated]
+    lookup_url_kwarg = 'id'
+
+    def get_recipe(self) -> Recipe:
+        """Получает объект рецепта из URL."""
+        return get_object_or_404(
+            Recipe, id=self.kwargs.get('id')
+        )
+
+    def get_object(self):
+        """Получает объект связанной модели пользователя."""
+        return get_object_or_404(
+            self.queryset.model.objects,
+            user=self.request.user,
+            recipe=self.get_recipe()
+        )
+
+
+from .utils import get_pdf
+from django.db.models.aggregates import Sum
+
+
+class ShoppingListViewSet(viewsets.ModelViewSet):
+    queryset = ShoppingList.objects.select_related("user", "recipe")
+    serializer_class = ShoppingListSerializer
+    http_method_names = ["get", "post", "delete"]
+    permission_classes = [IsAuthenticated]
+    lookup_url_kwarg = "id"
+
+    def get_recipe(self):
+        return get_object_or_404(Recipe, id=self.kwargs.get("id"))
+
+    def get_object(self):
+        return get_object_or_404(
+            self.queryset.model.objects,
+            user=self.request.user,
+            recipe=self.get_recipe(),
+        )
+
+    @action(
+        ["GET"],
+        detail=False,
+    )
+    def download_shopping_cart(self, request):
+        ingredient_list = (
+            ShoppingList.objects.filter(user=request.user)
+            .values(
+                "recipe__ingredients__name",
+                "recipe__ingredients__measurement_unit",
+            )
+            .annotate(total_amount=Sum("recipe__recipe__amount"))
+            .order_by("recipe__ingredients__name")
+        )
+        return get_pdf(ingredient_list)

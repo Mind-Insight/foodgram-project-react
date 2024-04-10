@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 
 from users.models import Following
+from recipes.models import Recipe
 
 User = get_user_model()
 
@@ -29,6 +30,16 @@ def TagsValidator(attrs):
         if tag in was:
             raise ValidationError("Теги должны быть уникальными.")
         was.add(tag)
+
+
+def CheckRecipe(request):
+    recipe_id = request.parser_context["kwargs"].get("recipe_id")
+    recipe = Recipe.objects.filter(id=recipe_id).first()
+    if not recipe:
+        raise ValidationError(
+            "Вы можете добавлять в избранное только существующие рецепты"
+        )
+    return recipe
 
 
 def CheckFollowing(attrs, request, view):

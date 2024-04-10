@@ -27,7 +27,7 @@ class Recipe(models.Model):
     )
     ingredients = models.ManyToManyField(
         "Ingredient",
-        related_name="recipes_ingredient",
+        related_name="recipes",
         through="RecipeIngredient",
     )
     tags = models.ManyToManyField(
@@ -108,9 +108,11 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        related_name='recipe',
     )
     ingredient = models.ForeignKey(
         Ingredient,
+        related_name='ingredient',
         on_delete=models.CASCADE,
     )
     amount = models.SmallIntegerField(
@@ -126,7 +128,6 @@ class Favorite(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name="favorites",
     )
     recipe = models.ForeignKey(
         Recipe,
@@ -140,7 +141,8 @@ class Favorite(models.Model):
     class Meta:
         verbose_name = "Избранное"
         verbose_name_plural = "Избранное"
-        ordering = ("-added",)
+        default_related_name = 'favorites'
+        ordering = ("added",)
 
     def __str__(self):
         return f"{self.user} добавил в избранное рецепт {self.recipe}"
@@ -150,7 +152,6 @@ class ShoppingList(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name="shopping_list",
     )
     recipe = models.ForeignKey(
         Recipe,
@@ -160,3 +161,8 @@ class ShoppingList(models.Model):
         "Время добавления",
         auto_now_add=True,
     )
+
+    class Meta:
+        verbose_name = 'КорзинаПокупок'
+        verbose_name_plural = 'КорзиныПокупок'
+        default_related_name = 'shopping_list'
