@@ -4,14 +4,14 @@ from base64 import b64decode
 from rest_framework import serializers
 from djoser.serializers import UserSerializer
 from django.contrib.auth import get_user_model
-from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.response import Response
 from django.core.files.base import ContentFile
 
 from users.models import Following
-from recipes.models import Recipe, Tag, Ingredient, RecipeIngredient
+from recipes.models import Recipe, Tag, Ingredient, RecipeIngredient, Favorite
 from .mixins import RecipeSerializerMixin
+
+from .validators import CheckFollowing
 
 User = get_user_model()
 
@@ -160,3 +160,62 @@ class RecipeSerializer(RecipeSerializerMixin):
     def to_representation(self, instance):
         serializer = RecipeReadSerializer(instance)
         return serializer.data
+
+
+class RecipeSerializerCheck(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = (
+            "id",
+            "name",
+            "image",
+            "cooking_time",
+        )
+
+
+class FollowingSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source="author.id", read_only=True)
+    username = serializers.CharField(source="author.username", read_only=True)
+    first_name = serializers.CharField(source="author.first_name", read_only=True)
+    last_name = serializers.CharField(source="author.last_name", read_only=True)
+    email = serializers.EmailField(source="author.email", read_only=True)
+    recipes = RecipeSerializerCheck(source="author.recipes", many=True, read_only=True)
+    recipes_count = serializers.IntegerField(read_only=True)
+    is_subscribed = serializers.BooleanField(read_only=True, default=False)
+
+    class Meta:
+        model = Following
+        fields = (
+            "id",
+            "email",
+            "username",
+            "first_name",
+            "last_name",
+            "recipes",
+            "recipes_count",
+            "is_subscribed",
+        )
+
+    def validate(self, attrs):
+        return CheckFollowing(attrs, self.context["request"], self.context["view"])
+
+    def create(self, validated_data):
+        return Following.objects.create(
+            user=validated_data["user"], author=validated_data["author"]
+        )
+
+    def to_representation(self, instance):
+        if self.context["request"].method == "POST":
+            instance = self.context["view"].get_queryset().get(id=instance.id)
+        data = super().to_representation(instance)
+        recipes_limit = self.context["request"].query_params.get("recipes_limit")
+        recipes = data["recipes"]
+        if recipes_limit and recipes and len(recipes) > int(recipes_limit):
+            data["recipes"] = recipes[: int(recipes_limit)]
+        return data
+
+
+# class FavoriteSerializer(serializers.ModelSerializer):
+    
+#     class Meta:
+#         model = Favor

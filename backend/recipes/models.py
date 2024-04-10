@@ -132,6 +132,18 @@ class Favorite(models.Model):
         Recipe,
         on_delete=models.CASCADE,
     )
+    added = models.DateTimeField(
+        "Время добавления",
+        auto_now_add=True,
+    )
+
+    class Meta:
+        verbose_name = "Избранное"
+        verbose_name_plural = "Избранное"
+        ordering = ("-added",)
+
+    def __str__(self):
+        return f"{self.user} добавил в избранное рецепт {self.recipe}"
 
 
 class ShoppingList(models.Model):

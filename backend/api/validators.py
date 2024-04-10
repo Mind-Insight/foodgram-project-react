@@ -1,4 +1,11 @@
 from rest_framework.serializers import ValidationError
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+
+from users.models import Following
+
+User = get_user_model()
 
 
 def IngredientsValidator(attrs):
@@ -22,3 +29,18 @@ def TagsValidator(attrs):
         if tag in was:
             raise ValidationError("Теги должны быть уникальными.")
         was.add(tag)
+
+
+def CheckFollowing(attrs, request, view):
+    user = request.user
+    author = view.get_following()
+    if user.id == author.id:
+        raise serializers.ValidationError(
+            "Вы можете подписываться только на других пользователей."
+        )
+
+    if Following.objects.filter(user=user, author=author).exists():
+        raise serializers.ValidationError("Данные пользователь уже у вас в подписках")
+    attrs["user"] = user
+    attrs["author"] = author
+    return attrs

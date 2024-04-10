@@ -1,9 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.contrib.auth.models import UserManager
 from django.core.exceptions import ValidationError
-
-from .managers import CustomUserManager
 
 
 class FoodgramUser(AbstractUser):
@@ -50,12 +47,12 @@ class Following(models.Model):
     user = models.ForeignKey(
         FoodgramUser,
         on_delete=models.CASCADE,
-        related_name="following",
+        related_name="follower",
     )
     author = models.ForeignKey(
         FoodgramUser,
         on_delete=models.CASCADE,
-        related_name="followers",
+        related_name="following",
     )
 
     class Meta:
