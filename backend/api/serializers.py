@@ -3,6 +3,8 @@ import webcolors
 from base64 import b64decode
 from rest_framework import serializers
 from djoser.serializers import UserSerializer
+from rest_framework.exceptions import ValidationError
+from rest_framework.validators import UniqueTogetherValidator
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import PermissionDenied
 from django.core.files.base import ContentFile
@@ -101,10 +103,9 @@ class RecipeIngredientReadField(serializers.ModelSerializer):
 from .validators import IngredientsValidator, TagsValidator
 
 
-# class RecipeReadSerializer(RecipeSerializerMixin):
 class RecipeReadSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientReadField(source="recipe", many=True)
-    tags = TagSerializer(many=True)
+    tags = TagSerializer(many=True, read_only=True)
     image = Base64ImageField()
     author = UserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField(read_only=True)
@@ -212,9 +213,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         return instance
 
     def to_representation(self, instance):
-        if self.context["request"].method in ["POST", "PATCH"]:
-            instance = self.context["view"].get_queryset().get(id=instance.id)
-        return RecipeReadSerializer(instance=instance, context=self.context).data
+        serializer = RecipeReadSerializer(instance)
+        return serializer.data
 
 
 class RecipeSerializerCheck(serializers.ModelSerializer):
@@ -261,7 +261,9 @@ class FollowingSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         if self.context["request"].method == "POST":
-            instance = self.context["view"].get_queryset().get(id=instance.id)
+            instance = (
+                self.context["view"].get_queryset().filter(id=instance.id).first()
+            )
         data = super().to_representation(instance)
         recipes_limit = self.context["request"].query_params.get("recipes_limit")
         recipes = data["recipes"]
@@ -270,41 +272,20 @@ class FollowingSerializer(serializers.ModelSerializer):
         return data
 
 
-from rest_framework.exceptions import ValidationError
-
-
 class FavoriteSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source="recipe.id", read_only=True)
-    name = serializers.CharField(source="recipe.name", read_only=True)
-    image = Base64ImageField(source="recipe.image", read_only=True)
-    cooking_time = serializers.IntegerField(
-        source="recipe.cooking_time", read_only=True
-    )
-
     class Meta:
         model = Favorite
-        fields = (
-            "id",
-            "name",
-            "image",
-            "cooking_time",
-        )
-
-    def validate(self, attrs):
-        user = self.context["request"].user
-        recipe = CheckRecipe(self.context["request"])
-        if (
-            self.context.get("request").method == "POST"
-            and Favorite.objects.filter(user=user, recipe=recipe).exists()
-        ):
-            raise ValidationError("Данный рецепт уже добавлен в избранное.")
-        attrs["recipe"] = recipe
-        return attrs
-
-    def create(self, validated_data):
-        return Favorite.objects.create(
-            user=self.context["request"].user, recipe=validated_data["recipe"]
-        )
+        fields = ("user", "recipe")
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Favorite.objects.all(),
+                fields=(
+                    "user",
+                    "recipe",
+                ),
+                message="Рецепт уже добавлен в избранное",
+            )
+        ]
 
 
 class ShoppingListSerializer(serializers.ModelSerializer):

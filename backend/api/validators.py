@@ -52,6 +52,13 @@ def CheckFollowing(attrs, request, view):
 
     if Following.objects.filter(user=user, author=author).exists():
         raise serializers.ValidationError("Данные пользователь уже у вас в подписках")
+    if (
+        request.method == "DELETE"
+        and not Following.objects.filter(user=user, author=author).exists()
+    ):
+        raise serializers.ValidationError(
+            "Вы не можете удалять несуществующие подписки"
+        )
     attrs["user"] = user
     attrs["author"] = author
     return attrs

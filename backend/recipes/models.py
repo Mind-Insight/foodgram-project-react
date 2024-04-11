@@ -6,6 +6,9 @@ from django.core.exceptions import ValidationError
 User = get_user_model()
 
 
+from .managers import RecipeManager
+
+
 class Recipe(models.Model):
     author = models.ForeignKey(
         User,
@@ -32,7 +35,7 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(
         "Tag",
-        related_name="recipe_tags",
+        related_name="recipes",
     )
     cooking_time = models.SmallIntegerField(
         "Время приготовления",
@@ -41,6 +44,8 @@ class Recipe(models.Model):
             MaxValueValidator(420),
         ],
     )
+    objects = models.Manager()
+    with_related = RecipeManager()
 
     class Meta:
         verbose_name = "Рецепт"
@@ -108,11 +113,11 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='recipe',
+        related_name="recipe",
     )
     ingredient = models.ForeignKey(
         Ingredient,
-        related_name='ingredient',
+        related_name="ingredient",
         on_delete=models.CASCADE,
     )
     amount = models.SmallIntegerField(
@@ -141,7 +146,7 @@ class Favorite(models.Model):
     class Meta:
         verbose_name = "Избранное"
         verbose_name_plural = "Избранное"
-        default_related_name = 'favorites'
+        default_related_name = "favorites"
         ordering = ("added",)
 
     def __str__(self):
@@ -163,6 +168,6 @@ class ShoppingList(models.Model):
     )
 
     class Meta:
-        verbose_name = 'КорзинаПокупок'
-        verbose_name_plural = 'КорзиныПокупок'
-        default_related_name = 'shopping_list'
+        verbose_name = "КорзинаПокупок"
+        verbose_name_plural = "КорзиныПокупок"
+        default_related_name = "shopping_list"

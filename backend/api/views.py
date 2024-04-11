@@ -5,10 +5,17 @@ from django.db.models.functions import Coalesce
 from django.db.models.functions import Cast
 from django.db.models import IntegerField
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
+from .utils import get_pdf
+from django.db.models.aggregates import Sum
 from djoser.views import UserViewSet
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import (
+    IsAuthenticated,
+    AllowAny,
+    IsAuthenticatedOrReadOnly,
+)
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from django.contrib.auth import get_user_model
@@ -30,6 +37,7 @@ from .serializers import (
     FollowingSerializer,
     FavoriteSerializer,
     ShoppingListSerializer,
+    RecipeSerializerCheck,
 )
 from .filters import IngredientFilter, RecipeFilter
 
@@ -51,23 +59,71 @@ class UserViewSet(UserViewSet):
         return Response(data=serializer.data)
 
 
+from rest_framework import permissions
+
+
+class AuthorOrReadOnly(permissions.BasePermission):
+    def has_object_permission(self, request, view, object):
+        return (
+            request.method in permissions.SAFE_METHODS
+            or object.author == request.user
+            and request.user.is_authenticated
+        )
+
+
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
     http_method_names = ["get", "post", "delete", "patch"]
+    permission_classes = [IsAuthenticatedOrReadOnly, AuthorOrReadOnly]
     filterset_class = RecipeFilter
+
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return Recipe.with_related.select_related("author")
+        return Recipe.with_related.annotate_user_flags(user=self.request.user)
 
     def get_serializer_class(self):
         if self.request.method == "GET":
             return RecipeReadSerializer
         return RecipeSerializer
 
-    def get_recipe(self):
-        return Recipe.objects.get(pk=self.kwargs.get("pk"))
-
     def perform_create(self, serializer):
         serializer.save(
             author=self.request.user,
         )
+
+    def add_obj(self, serializer_class, request, pk):
+        try:
+            recipe = Recipe.objects.get(pk=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        serializer = serializer_class(
+            data={"user": request.user.id, "recipe": recipe.id}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        recipe_serializer = RecipeSerializerCheck(recipe)
+        return Response(
+            data=recipe_serializer.data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    def remove_obj(self, model, request, pk):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        try:
+            item = model.objects.get(user=request.user, **{"recipe": recipe})
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        item.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        ["POST", "DELETE"],
+        detail=True,
+    )
+    def favorite(self, request, pk):
+        if request.method == "POST":
+            return self.add_obj(FavoriteSerializer, request, pk)
+        return self.remove_obj(Favorite, request, pk)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -86,26 +142,22 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = IngredientFilter
 
 
+from django.db.models import QuerySet, Exists, OuterRef, Count
+
+
 class FollowingViewSet(viewsets.ModelViewSet):
     serializer_class = FollowingSerializer
     http_method_names = ["get", "post", "delete"]
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        author_subquery = (
-            Following.objects.filter(user=self.request.user, author=OuterRef("pk"))
-            .values("author")
-            .annotate(exists=Count("pk"))
-            .values("exists")[:1]
-        )
-
         return Following.objects.filter(user=self.request.user).annotate(
-            is_subscribed=Coalesce(
-                Subquery(author_subquery), Value(0), output_field=IntegerField()
+            is_subscribed=Exists(
+                queryset=Following.objects.filter(
+                    user=self.request.user, author=OuterRef("pk")
+                )
             ),
-            recipes_count=Coalesce(
-                Cast(F("author__recipes"), output_field=IntegerField()), Value(0)
-            ),
+            recipes_count=Count("author__recipes"),
         )
 
     def get_following(self):
@@ -117,30 +169,24 @@ class FollowingViewSet(viewsets.ModelViewSet):
         )
 
 
-class FavoriteViewSet(viewsets.ModelViewSet):
-    serializer_class = FavoriteSerializer
-    queryset = Favorite.objects.select_related("user", "recipe")
-    http_method_names = ["post", "delete"]
-    permission_classes = [IsAuthenticated]
-    lookup_url_kwarg = 'id'
+# class FavoriteViewSet(viewsets.ModelViewSet):
+#     serializer_class = FavoriteSerializer
+#     queryset = Favorite.objects.select_related("user", "recipe")
+#     http_method_names = ["post", "delete"]
+#     permission_classes = [IsAuthenticated]
+#     lookup_url_kwarg = "id"
 
-    def get_recipe(self) -> Recipe:
-        """Получает объект рецепта из URL."""
-        return get_object_or_404(
-            Recipe, id=self.kwargs.get('id')
-        )
+#     def get_recipe(self) -> Recipe:
+#         """Получает объект рецепта из URL."""
+#         return get_object_or_404(Recipe, id=self.kwargs.get("id"))
 
-    def get_object(self):
-        """Получает объект связанной модели пользователя."""
-        return get_object_or_404(
-            self.queryset.model.objects,
-            user=self.request.user,
-            recipe=self.get_recipe()
-        )
-
-
-from .utils import get_pdf
-from django.db.models.aggregates import Sum
+#     def get_object(self):
+#         """Получает объект связанной модели пользователя."""
+#         return get_object_or_404(
+#             self.queryset.model.objects,
+#             user=self.request.user,
+#             recipe=self.get_recipe(),
+#         )
 
 
 class ShoppingListViewSet(viewsets.ModelViewSet):
