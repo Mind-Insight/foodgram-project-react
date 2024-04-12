@@ -224,26 +224,6 @@ class FollowingViewSet(viewsets.ModelViewSet):
         )
 
 
-# class FavoriteViewSet(viewsets.ModelViewSet):
-#     serializer_class = FavoriteSerializer
-#     queryset = Favorite.objects.select_related("user", "recipe")
-#     http_method_names = ["post", "delete"]
-#     permission_classes = [IsAuthenticated]
-#     lookup_url_kwarg = "id"
-
-#     def get_recipe(self) -> Recipe:
-#         """Получает объект рецепта из URL."""
-#         return get_object_or_404(Recipe, id=self.kwargs.get("id"))
-
-#     def get_object(self):
-#         """Получает объект связанной модели пользователя."""
-#         return get_object_or_404(
-#             self.queryset.model.objects,
-#             user=self.request.user,
-#             recipe=self.get_recipe(),
-#         )
-
-
 class ShoppingListViewSet(viewsets.ModelViewSet):
     queryset = ShoppingList.objects.select_related("user", "recipe")
     serializer_class = ShoppingListSerializer
