@@ -28,13 +28,12 @@ def get_pdf(ingredient_list):
 
     y = settings.STRING_CONTENT_Y
     for ingredient in ingredient_list:
-        p.drawString(
-            settings.STRING_CONTENT_X,
-            y,
-            (f"{ingredient['total_amount']} "
+        text = (
+            f"{ingredient['total_amount']} "
             f"{ingredient['recipe__ingredients__measurement_unit']}. "
-            f"{ingredient['recipe__ingredients__name']}"),
+            f"{ingredient['recipe__ingredients__name']}"
         )
+        p.drawString(settings.STRING_CONTENT_X, y, text)
         y -= settings.LINE_OFFSET_CONTENT
 
     p.showPage()
