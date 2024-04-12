@@ -1,4 +1,4 @@
-from django.db.models import Manager, Exists, OuterRef, Prefetch
+from django.db.models import Manager, Exists, OuterRef
 from django.contrib.auth import get_user_model
 
 from users.models import Following
