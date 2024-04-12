@@ -31,9 +31,9 @@ def get_pdf(ingredient_list):
         p.drawString(
             settings.STRING_CONTENT_X,
             y,
-            f"{ingredient['total_amount']} 
-              {ingredient['recipe__ingredients__measurement_unit']}. 
-              {ingredient['recipe__ingredients__name']}",
+            (f"{ingredient['total_amount']} "
+            f"{ingredient['recipe__ingredients__measurement_unit']}. "
+            f"{ingredient['recipe__ingredients__name']}"),
         )
         y -= settings.LINE_OFFSET_CONTENT
 
