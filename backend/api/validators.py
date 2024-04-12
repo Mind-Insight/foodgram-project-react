@@ -42,23 +42,7 @@ def CheckRecipe(request):
     return recipe
 
 
-def CheckFollowing(attrs, request, view):
-    user = request.user
-    author = view.get_following()
-    if user.id == author.id:
-        raise serializers.ValidationError(
-            "Вы можете подписываться только на других пользователей."
-        )
-
-    if Following.objects.filter(user=user, author=author).exists():
-        raise serializers.ValidationError("Данные пользователь уже у вас в подписках")
-    if (
-        request.method == "DELETE"
-        and not Following.objects.filter(user=user, author=author).exists()
-    ):
-        raise serializers.ValidationError(
-            "Вы не можете удалять несуществующие подписки"
-        )
-    attrs["user"] = user
-    attrs["author"] = author
+def CheckFollowing(attrs):
+    if attrs.get("user") == attrs.get("author"):
+        raise serializers.ValidationError("Вы уже подписаны на этого пользователя")
     return attrs

@@ -16,7 +16,6 @@ from .views import (
 
 
 router = DefaultRouter()
-router.register(r"users/subscriptions", FollowingViewSet, basename="subscriptions")
 router.register(r"recipes", RecipeViewSet, basename="recipes")
 router.register(r"tags", TagViewSet, basename="tags")
 router.register(r"users", UserViewSet, basename="users")
@@ -24,24 +23,15 @@ router.register(r"ingredients", IngredientViewSet, basename="ingredients")
 
 
 urlpatterns = [
-    path(
-        "users/<int:user_id>/subscribe/",
-        FollowingViewSet.as_view(
-            {
-                "post": "create",
-                "delete": "destroy",
-            },
-        ),
-    ),
-    path(
-        "recipes/<int:recipe_id>/shopping_cart/",
-        ShoppingListViewSet.as_view(
-            {
-                "delete": "destroy",
-                "post": "create",
-            },
-        ),
-    ),
+    # path(
+    #     "users/<int:user_id>/subscribe/",
+    #     FollowingViewSet.as_view(
+    #         {
+    #             "post": "create",
+    #             "delete": "destroy",
+    #         },
+    #     ),
+    # ),
     path(
         "recipes/download_shopping_cart/",
         ShoppingListViewSet.as_view(

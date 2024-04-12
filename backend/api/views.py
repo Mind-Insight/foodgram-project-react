@@ -38,6 +38,7 @@ from .serializers import (
     FavoriteSerializer,
     ShoppingListSerializer,
     RecipeSerializerCheck,
+    SubscriptionsSerializer,
 )
 from .filters import IngredientFilter, RecipeFilter
 
@@ -58,11 +59,65 @@ class UserViewSet(UserViewSet):
         serializer = CustomUserSerializer(request.user)
         return Response(data=serializer.data)
 
+    @action(
+        ["POST", "DELETE"],
+        detail=True,
+        permission_classes=[IsAuthenticated],
+    )
+    def subscribe(serf, request, id):
+        author = get_object_or_404(User, id=id)
+        if request.method == "POST":
+            serializer = FollowingSerializer(
+                data={"user": request.user.id, "author": author.id}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            subscriptions_info = SubscriptionsSerializer(
+                author,
+                context={"request": request},
+            )
+            return Response(
+                data=subscriptions_info.data,
+                status=status.HTTP_201_CREATED,
+            )
+        try:
+            follow = Following.objects.get(user=request.user, author=author)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        ["GET"],
+        detail=False,
+    )
+    def subscriptions(self, request):
+        """Отображение списка подсписок."""
+        subscriptions = User.objects.filter(following__user=request.user.id)
+        limit = self.request.GET.get("limit")
+        if limit is not None:
+            subscriptions = User.objects.filter(following__user=request.user.id)[
+                : int(limit)
+            ]
+        page = self.paginate_queryset(subscriptions)
+        if page is not None:
+            serializer = SubscriptionsSerializer(
+                page,
+                many=True,
+                context={"request": request},
+            )
+            return self.get_paginated_response(serializer.data)
+        serializer = SubscriptionsSerializer(
+            subscriptions,
+            many=True,
+            context={"request": request},
+        )
+        return Response(serializer.data)
+
 
 from rest_framework import permissions
 
 
-class AuthorOrReadOnly(permissions.BasePermission):
+class IsAuthorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, object):
         return (
             request.method in permissions.SAFE_METHODS
@@ -73,7 +128,7 @@ class AuthorOrReadOnly(permissions.BasePermission):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "delete", "patch"]
-    permission_classes = [IsAuthenticatedOrReadOnly, AuthorOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     filterset_class = RecipeFilter
 
     def get_queryset(self):
@@ -124,6 +179,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if request.method == "POST":
             return self.add_obj(FavoriteSerializer, request, pk)
         return self.remove_obj(Favorite, request, pk)
+
+    @action(
+        ["POST", "DELETE"],
+        detail=True,
+    )
+    def shopping_cart(self, request, pk):
+        if request.method == "POST":
+            return self.add_obj(ShoppingListSerializer, request, pk)
+        return self.remove_obj(ShoppingList, request, pk)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

@@ -2,7 +2,7 @@ import webcolors
 
 from base64 import b64decode
 from rest_framework import serializers
-from djoser.serializers import UserSerializer
+from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 from django.contrib.auth import get_user_model
@@ -19,7 +19,7 @@ from recipes.models import (
     ShoppingList,
 )
 
-from .validators import CheckFollowing, CheckRecipe
+from .validators import CheckFollowing, CheckRecipe, IngredientsValidator, TagsValidator
 
 User = get_user_model()
 
@@ -45,11 +45,60 @@ class Hex2NameColor(serializers.Field):
         return data
 
 
-class CustomUserSerializer(UserSerializer):
-    is_subscribed = serializers.BooleanField(read_only=True, default=False)
+# class CustomUserSerializer(UserSerializer):
+#     is_subscribed = serializers.SerializerMethodField()
 
-    class Meta(UserSerializer.Meta):
-        fields = UserSerializer.Meta.fields + ("is_subscribed",)
+#     class Meta(UserSerializer.Meta):
+#         fields = UserSerializer.Meta.fields + ("is_subscribed",)
+
+
+#     def get_is_subscribed(self, obj):
+#         request = self.context.get("request")
+#         if request is None or request.user.is_anonymous:
+#             return False
+#         return request.user.follower.filter(author=obj).exists()
+class CustomUserCreateSerializer(UserCreateSerializer):
+    """Сериализатор для создания объекта класса User."""
+
+    class Meta:
+        model = User
+        fields = ("email", "id", "username", "first_name", "last_name", "password")
+        extra_kwargs = {"password": {"write_only": True}}
+
+    def validate(self, data):
+        """Запрещает пользователям присваивать себе username me
+        и использовать повторные username и email."""
+        if data.get("username") == "me":
+            raise serializers.ValidationError("Использовать имя me запрещено")
+        if User.objects.filter(username=data.get("username")):
+            raise serializers.ValidationError(
+                "Пользователь с таким username уже существует"
+            )
+        if User.objects.filter(email=data.get("email")):
+            raise serializers.ValidationError(
+                "Пользователь с таким email уже существует"
+            )
+        return data
+
+
+class CustomUserSerializer(UserSerializer):
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ("email", "id", "username", "first_name", "last_name", "is_subscribed")
+
+    def validate(self, data):
+        """Запрещает пользователям изменять себе username на me."""
+        if data.get("username") == "me":
+            raise serializers.ValidationError("Использовать имя me запрещено")
+
+    def get_is_subscribed(self, instance):
+        """Проверяет, подписан ли текущий пользователь на автора аккаунта."""
+        request = self.context.get("request")
+        if request is None or request.user.is_anonymous:
+            return False
+        return request.user.following.filter(author=instance).exists()
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -98,9 +147,6 @@ class RecipeIngredientReadField(serializers.ModelSerializer):
             "name",
             "measurement_unit",
         )
-
-
-from .validators import IngredientsValidator, TagsValidator
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
@@ -229,47 +275,54 @@ class RecipeSerializerCheck(serializers.ModelSerializer):
 
 
 class FollowingSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source="author.id", read_only=True)
-    username = serializers.CharField(source="author.username", read_only=True)
-    first_name = serializers.CharField(source="author.first_name", read_only=True)
-    last_name = serializers.CharField(source="author.last_name", read_only=True)
-    email = serializers.EmailField(source="author.email", read_only=True)
-    recipes = RecipeSerializerCheck(source="author.recipes", many=True, read_only=True)
-    recipes_count = serializers.IntegerField(read_only=True)
-    is_subscribed = serializers.BooleanField(read_only=True, default=False)
-
     class Meta:
         model = Following
         fields = (
-            "id",
+            "user",
+            "author",
+        )
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Following.objects.all(),
+                fields=(
+                    "user",
+                    "author",
+                ),
+                message="Вы подписаны на этого пользователя",
+            ),
+        ]
+
+    def validate(self, attrs):
+        return CheckFollowing(attrs)
+
+
+class SubscriptionsSerializer(CustomUserSerializer):
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
             "email",
+            "id",
             "username",
             "first_name",
             "last_name",
+            "is_subscribed",
             "recipes",
             "recipes_count",
-            "is_subscribed",
         )
 
-    def validate(self, attrs):
-        return CheckFollowing(attrs, self.context["request"], self.context["view"])
+    def get_recipes(self, obj):
+        recipes_limit = self.context["request"].GET.get("recipes_limit")
+        recipe_author = obj.recipes.all()
+        if recipes_limit is not None:
+            recipe_author = obj.recipes.all()[: int(recipes_limit)]
+        info_recipe = RecipeSerializerCheck(recipe_author, many=True)
+        return info_recipe.data
 
-    def create(self, validated_data):
-        return Following.objects.create(
-            user=validated_data["user"], author=validated_data["author"]
-        )
-
-    def to_representation(self, instance):
-        if self.context["request"].method == "POST":
-            instance = (
-                self.context["view"].get_queryset().filter(id=instance.id).first()
-            )
-        data = super().to_representation(instance)
-        recipes_limit = self.context["request"].query_params.get("recipes_limit")
-        recipes = data["recipes"]
-        if recipes_limit and recipes and len(recipes) > int(recipes_limit):
-            data["recipes"] = recipes[: int(recipes_limit)]
-        return data
+    def get_recipes_count(self, object):
+        return object.recipes.count()
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -289,35 +342,16 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 
 class ShoppingListSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source="recipe.id", read_only=True)
-    name = serializers.CharField(source="recipe.name", read_only=True)
-    image = Base64ImageField(source="recipe.image", read_only=True)
-    cooking_time = serializers.IntegerField(
-        source="recipe.cooking_time", read_only=True
-    )
-
     class Meta:
         model = ShoppingList
         fields = (
-            "id",
-            "name",
-            "image",
-            "cooking_time",
+            "user",
+            "recipe",
         )
-
-    def validate(self, attrs):
-        recipe = CheckRecipe(self.context["request"])
-        if (
-            self.context["request"].method == "POST"
-            and ShoppingList.objects.filter(
-                user=self.context["request"].user, recipe=recipe
-            ).exists()
-        ):
-            raise ValidationError("Рецепт уже добавлен в корзину")
-        attrs["recipe"] = recipe
-        return attrs
-
-    def create(self, validated_data):
-        return ShoppingList.objects.create(
-            user=self.context["request"].user, recipe=validated_data["recipe"]
-        )
+        validators = [
+            UniqueTogetherValidator(
+                queryset=ShoppingList.objects.all(),
+                fields=("user", "recipe"),
+                message="Рецепт уже добавлен в корзину",
+            )
+        ]
