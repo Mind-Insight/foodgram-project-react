@@ -298,7 +298,7 @@ class SubscriptionsSerializer(CustomUserSerializer):
         recipes_limit = self.context["request"].GET.get("recipes_limit")
         recipe_author = obj.recipes.all()
         if recipes_limit is not None:
-            recipe_author = obj.recipes.all()[: int(recipes_limit)]
+            recipe_author = obj.recipes.all()[:int(recipes_limit)]
         info_recipe = RecipeSerializerCheck(recipe_author, many=True)
         return info_recipe.data
 

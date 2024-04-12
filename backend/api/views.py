@@ -90,7 +90,7 @@ class UserViewSet(UserViewSet):
         limit = self.request.GET.get("limit")
         if limit is not None:
             subscriptions = User.objects.filter(following__user=request.user.id)[
-                : int(limit)
+                :int(limit)
             ]
         page = self.paginate_queryset(subscriptions)
         if page is not None:
