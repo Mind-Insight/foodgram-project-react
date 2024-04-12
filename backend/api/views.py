@@ -10,6 +10,7 @@ from rest_framework.permissions import (
     AllowAny,
     IsAuthenticatedOrReadOnly,
 )
+from rest_framework import permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from django.contrib.auth import get_user_model
@@ -90,7 +91,7 @@ class UserViewSet(UserViewSet):
         limit = self.request.GET.get("limit")
         if limit is not None:
             subscriptions = User.objects.filter(following__user=request.user.id)[
-                :int(limit)
+                : int(limit)
             ]
         page = self.paginate_queryset(subscriptions)
         if page is not None:
@@ -106,9 +107,6 @@ class UserViewSet(UserViewSet):
             context={"request": request},
         )
         return Response(serializer.data)
-
-
-from rest_framework import permissions
 
 
 class IsAuthorOrReadOnly(permissions.BasePermission):
