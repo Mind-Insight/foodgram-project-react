@@ -133,7 +133,7 @@ name: Main Foodgram workflow
 
 on:
   push:
-    branch:
+    branches:
       - master
 
 jobs:
