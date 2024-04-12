@@ -131,8 +131,10 @@
 
 name: Main Foodgram workflow
 
-# on:
-#   push
+on:
+  push:
+    branch:
+      - master
 
 jobs:
   tests:
