@@ -1,13 +1,13 @@
-from django.db.models import QuerySet, Manager, Exists, OuterRef, Prefetch
+from django.db.models import Manager, Exists, OuterRef, Prefetch
+from django.contrib.auth import get_user_model
 
 from users.models import Following
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 
 class RecipeManager(Manager):
-    def annotate_user_flags(self, user):
+    def get_correct_user(self, user):
         return (
             self.annotate(
                 is_in_shopping_cart=Exists(
@@ -21,18 +21,9 @@ class RecipeManager(Manager):
                     queryset=User.objects.filter(id=user.id, favorites=OuterRef("pk"))
                 )
             )
-            .prefetch_related(
-                Prefetch(
-                    "author",
-                    queryset=User.objects.annotate(
-                        is_subscribed=Exists(
-                            queryset=(
-                                Following.objects.filter(
-                                    user=user, author=OuterRef("pk")
-                                )
-                            )
-                        )
-                    ),
+            .annotate(
+                is_subscribed=Exists(
+                    queryset=Following.objects.filter(user=user, author=OuterRef("pk"))
                 )
             )
         )

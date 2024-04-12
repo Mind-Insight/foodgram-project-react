@@ -3,10 +3,9 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 
-User = get_user_model()
-
-
 from .managers import RecipeManager
+
+User = get_user_model()
 
 
 class Recipe(models.Model):

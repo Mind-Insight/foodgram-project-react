@@ -3,7 +3,6 @@ import webcolors
 from base64 import b64decode
 from rest_framework import serializers
 from djoser.serializers import UserSerializer, UserCreateSerializer
-from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import PermissionDenied
@@ -19,7 +18,7 @@ from recipes.models import (
     ShoppingList,
 )
 
-from .validators import CheckFollowing, CheckRecipe, IngredientsValidator, TagsValidator
+from .validators import CheckFollowing, IngredientsValidator, TagsValidator
 
 User = get_user_model()
 
@@ -45,29 +44,13 @@ class Hex2NameColor(serializers.Field):
         return data
 
 
-# class CustomUserSerializer(UserSerializer):
-#     is_subscribed = serializers.SerializerMethodField()
-
-#     class Meta(UserSerializer.Meta):
-#         fields = UserSerializer.Meta.fields + ("is_subscribed",)
-
-
-#     def get_is_subscribed(self, obj):
-#         request = self.context.get("request")
-#         if request is None or request.user.is_anonymous:
-#             return False
-#         return request.user.follower.filter(author=obj).exists()
 class CustomUserCreateSerializer(UserCreateSerializer):
-    """Сериализатор для создания объекта класса User."""
-
     class Meta:
         model = User
         fields = ("email", "id", "username", "first_name", "last_name", "password")
         extra_kwargs = {"password": {"write_only": True}}
 
     def validate(self, data):
-        """Запрещает пользователям присваивать себе username me
-        и использовать повторные username и email."""
         if data.get("username") == "me":
             raise serializers.ValidationError("Использовать имя me запрещено")
         if User.objects.filter(username=data.get("username")):
@@ -89,12 +72,10 @@ class CustomUserSerializer(UserSerializer):
         fields = ("email", "id", "username", "first_name", "last_name", "is_subscribed")
 
     def validate(self, data):
-        """Запрещает пользователям изменять себе username на me."""
         if data.get("username") == "me":
             raise serializers.ValidationError("Использовать имя me запрещено")
 
     def get_is_subscribed(self, instance):
-        """Проверяет, подписан ли текущий пользователь на автора аккаунта."""
         request = self.context.get("request")
         if request is None or request.user.is_anonymous:
             return False

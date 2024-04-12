@@ -1,14 +1,8 @@
-from django.db.models import Count, OuterRef, Subquery
-from django.db.models import F
-from django.db.models import Value
-from django.db.models.functions import Coalesce
-from django.db.models.functions import Cast
-from django.db.models import IntegerField
+from django.db.models import Exists, OuterRef, Count
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
-from .utils import get_pdf
 from django.db.models.aggregates import Sum
 from djoser.views import UserViewSet
 from rest_framework.permissions import (
@@ -41,6 +35,7 @@ from .serializers import (
     SubscriptionsSerializer,
 )
 from .filters import IngredientFilter, RecipeFilter
+from .utils import get_pdf
 
 User = get_user_model()
 
@@ -91,7 +86,6 @@ class UserViewSet(UserViewSet):
         detail=False,
     )
     def subscriptions(self, request):
-        """Отображение списка подсписок."""
         subscriptions = User.objects.filter(following__user=request.user.id)
         limit = self.request.GET.get("limit")
         if limit is not None:
@@ -134,7 +128,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if not self.request.user.is_authenticated:
             return Recipe.with_related.select_related("author")
-        return Recipe.with_related.annotate_user_flags(user=self.request.user)
+        return Recipe.with_related.get_correct_user(user=self.request.user)
 
     def get_serializer_class(self):
         if self.request.method == "GET":
@@ -204,9 +198,6 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     search_field = ("name",)
     filter_backends = [DjangoFilterBackend]
     filterset_class = IngredientFilter
-
-
-from django.db.models import QuerySet, Exists, OuterRef, Count
 
 
 class FollowingViewSet(viewsets.ModelViewSet):

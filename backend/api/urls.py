@@ -3,14 +3,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 
-from recipes.management.commands import import_ingredients
-
 from .views import (
     RecipeViewSet,
     TagViewSet,
     UserViewSet,
     IngredientViewSet,
-    FollowingViewSet,
     ShoppingListViewSet,
 )
 
@@ -23,15 +20,6 @@ router.register(r"ingredients", IngredientViewSet, basename="ingredients")
 
 
 urlpatterns = [
-    # path(
-    #     "users/<int:user_id>/subscribe/",
-    #     FollowingViewSet.as_view(
-    #         {
-    #             "post": "create",
-    #             "delete": "destroy",
-    #         },
-    #     ),
-    # ),
     path(
         "recipes/download_shopping_cart/",
         ShoppingListViewSet.as_view(

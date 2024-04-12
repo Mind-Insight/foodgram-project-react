@@ -19,13 +19,15 @@ class IngredientAdmin(admin.ModelAdmin):
         "measurement_unit",
     )
 
+
 class RecipeIngredientInline(admin.TabularInline):
     model = RecipeIngredient
     extra = 1
 
+
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    inlines = (RecipeIngredientInline, )
+    inlines = (RecipeIngredientInline,)
     list_display = (
         "author",
         "name",
