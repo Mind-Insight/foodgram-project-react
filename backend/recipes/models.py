@@ -73,7 +73,8 @@ class Tag(models.Model):
 
     def clean(self):
         if len(set([self.name, self.color, self.slug])) != 3:
-            raise ValidationError("Значения всех трех полей должны быть различными.")
+            raise ValidationError("Значения всех трех "
+                                  "полей должны быть различными.")
         super().clean()
 
     def save(self, *args, **kwargs):

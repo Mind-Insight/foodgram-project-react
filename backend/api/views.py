@@ -80,6 +80,7 @@ class UserViewSet(UserViewSet):
             follow = Following.objects.get(user=request.user, author=author)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+        follow.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -218,7 +219,9 @@ class FollowingViewSet(viewsets.ModelViewSet):
 
     def get_object(self):
         return get_object_or_404(
-            Following.objects, user=self.request.user, author=self.get_following()
+            Following.objects,
+            user=self.request.user,
+            author=self.get_following(),
         )
 
 

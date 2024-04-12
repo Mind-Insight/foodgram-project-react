@@ -18,12 +18,16 @@ class RecipeManager(Manager):
             )
             .annotate(
                 is_favorited=Exists(
-                    queryset=User.objects.filter(id=user.id, favorites=OuterRef("pk"))
+                    queryset=User.objects.filter(
+                        id=user.id,
+                        favorites=OuterRef("pk")
+                    )
                 )
             )
             .annotate(
                 is_subscribed=Exists(
-                    queryset=Following.objects.filter(user=user, author=OuterRef("pk"))
+                    queryset=Following.objects.filter(
+                        user=user, author=OuterRef("pk"))
                 )
             )
         )

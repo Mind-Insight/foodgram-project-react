@@ -47,7 +47,14 @@ class Hex2NameColor(serializers.Field):
 class CustomUserCreateSerializer(UserCreateSerializer):
     class Meta:
         model = User
-        fields = ("email", "id", "username", "first_name", "last_name", "password")
+        fields = (
+            "email",
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "password",
+        )
         extra_kwargs = {"password": {"write_only": True}}
 
     def validate(self, data):
@@ -69,7 +76,14 @@ class CustomUserSerializer(UserSerializer):
 
     class Meta:
         model = User
-        fields = ("email", "id", "username", "first_name", "last_name", "is_subscribed")
+        fields = (
+            "email",
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "is_subscribed",
+        )
 
     def validate(self, data):
         if data.get("username") == "me":
@@ -118,7 +132,9 @@ class RecipeIngredientWriteField(serializers.ModelSerializer):
 class RecipeIngredientReadField(serializers.ModelSerializer):
     id = serializers.IntegerField(source="ingredient.id")
     name = serializers.CharField(source="ingredient.name")
-    measurement_unit = serializers.CharField(source="ingredient.measurement_unit")
+    measurement_unit = serializers.CharField(
+        source="ingredient.measurement_unit",
+    )
 
     class Meta:
         model = RecipeIngredient
@@ -199,7 +215,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.pop("ingredients")
         tags_data = validated_data.pop("tags")
         all_id = set(
-            ingredient_data["ingredient"] for ingredient_data in ingredients_data
+            ingredient_data["ingredient"]
+            for ingredient_data in ingredients_data
         )
         all_ingredients = Ingredient.objects.filter(id__in=all_id)
         if not all_ingredients:
@@ -208,7 +225,9 @@ class RecipeSerializer(serializers.ModelSerializer):
         recipe_ingredients = [
             RecipeIngredient(
                 recipe=recipe,
-                ingredient=all_ingredients.get(id=ingredient_data["ingredient"]),
+                ingredient=all_ingredients.get(
+                    id=ingredient_data["ingredient"]
+                ),
                 amount=ingredient_data["amount"],
             )
             for ingredient_data in ingredients_data
@@ -221,7 +240,10 @@ class RecipeSerializer(serializers.ModelSerializer):
         tags = validated_data.get("tags")
         ingredients_data = validated_data.get("ingredients")
         all_ingredients = Ingredient.objects.all().filter(
-            id__in=[ingredient.get("ingredient") for ingredient in ingredients_data]
+            id__in=[
+                ingredient.get("ingredient")
+                for ingredient in ingredients_data
+            ]
         )
         if not all_ingredients:
             raise serializers.ValidationError("Ингредиенты пустые.")
@@ -229,7 +251,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             [
                 RecipeIngredient(
                     recipe=instance,
-                    ingredient=all_ingredients.get(id=ingredient.get("ingredient")),
+                    ingredient=all_ingredients.get(
+                        id=ingredient.get("ingredient")
+                    ),
                     amount=ingredient.get("amount"),
                 )
                 for ingredient in ingredients_data
@@ -298,7 +322,7 @@ class SubscriptionsSerializer(CustomUserSerializer):
         recipes_limit = self.context["request"].GET.get("recipes_limit")
         recipe_author = obj.recipes.all()
         if recipes_limit is not None:
-            recipe_author = obj.recipes.all()[:int(recipes_limit)]
+            recipe_author = obj.recipes.all()[: int(recipes_limit)]
         info_recipe = RecipeSerializerCheck(recipe_author, many=True)
         return info_recipe.data
 

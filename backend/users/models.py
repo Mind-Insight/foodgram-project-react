@@ -24,7 +24,8 @@ class FoodgramUser(AbstractUser):
     def clean(self):
         if len(set([self.username, self.first_name, self.last_name])) != 3:
             raise ValidationError(
-                "Поля username, name, surname должны быть уникальными в пределах одной записи"
+                "Поля username, name, surname должны "
+                "быть уникальными в пределах одной записи"
             )
         super().clean()
 
