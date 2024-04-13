@@ -17,6 +17,7 @@ from .fields import Base64ImageField
 
 User = get_user_model()
 
+
 class CustomUserCreateSerializer(UserCreateSerializer):
     class Meta:
         model = User
@@ -181,7 +182,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         all_ingredient_ids = set(
             ingredient_data["ingredient"]
             for ingredient_data in ingredients_data
-            )
+        )
         all_ingredients = Ingredient.objects.filter(
             id__in=all_ingredient_ids
         )
@@ -193,7 +194,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def create_recipe_ingredients(self, recipe, ingredients_data):
         all_ingredients = Ingredient.objects.filter(
-            id__in = [
+            id__in=[
                 ingredient_data["ingredient"]
                 for ingredient_data in ingredients_data
             ]
