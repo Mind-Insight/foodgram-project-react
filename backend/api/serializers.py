@@ -12,7 +12,12 @@ from recipes.models import (
     Favorite,
     ShoppingList,
 )
-from .validators import check_following, ingredients_validator, tags_validator, valid_username
+from .validators import (
+    check_following,
+    ingredients_validator,
+    tags_validator,
+    valid_username,
+)
 from .fields import Base64ImageField
 
 User = get_user_model()
@@ -178,7 +183,6 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ingredients_data = data.get("ingredients")
-        tags_data = data.get("tags")
         all_ingredient_ids = set(
             ingredient_data["ingredient"]
             for ingredient_data in ingredients_data
@@ -202,7 +206,9 @@ class RecipeSerializer(serializers.ModelSerializer):
         recipe_ingredients = [
             RecipeIngredient(
                 recipe=recipe,
-                ingredient=all_ingredients.get(id=ingredient_data["ingredient"]),
+                ingredient=all_ingredients.get(
+                    id=ingredient_data["ingredient"]
+                ),
                 amount=ingredient_data["amount"],
             )
             for ingredient_data in ingredients_data
