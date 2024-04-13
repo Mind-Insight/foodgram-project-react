@@ -5,32 +5,37 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-def IngredientsValidator(attrs):
+def ingredients_validator(attrs):
     ingredients = attrs.get("ingredients", [])
     if not ingredients:
         raise ValidationError("Должен присутствовать хотя бы один ингредиент.")
-    was = set()
+    unique_ingredients_ids = set()
     for ingredient in ingredients:
-        iid = ingredient.get("ingredient")
-        if iid in was:
+        ingredient_id = ingredient.get("ingredient")
+        if ingredient_id in unique_ingredients_ids:
             raise ValidationError("Ингредиенты должны быть уникальными.")
-        was.add(iid)
+        unique_ingredients_ids.add(ingredient_id)
 
 
-def TagsValidator(attrs):
+def tags_validator(attrs):
     tags = attrs.get("tags", [])
     if not tags:
         raise ValidationError("Должен присутствовать хотя бы один тег.")
-    was = set()
+    unique_tags = set()
     for tag in tags:
-        if tag in was:
+        if tag in unique_tags:
             raise ValidationError("Теги должны быть уникальными.")
-        was.add(tag)
+        unique_tags.add(tag)
 
 
-def CheckFollowing(attrs):
+def check_following(attrs):
     if attrs.get("user") == attrs.get("author"):
         raise serializers.ValidationError(
             "Вы уже подписаны на этого пользователя"
         )
     return attrs
+
+
+def valid_username(attrs):
+    if attrs.get("username") == "me":
+        raise serializers.ValidationError("Использовать имя me запрещено")

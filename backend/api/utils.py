@@ -5,12 +5,12 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
 
-value = 'attachment; filename="ingredient_list.pdf"'
+VALUE = 'attachment; filename="ingredient_list.pdf"'
 
 
 def get_pdf(ingredient_list):
     response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = value
+    response["Content-Disposition"] = VALUE
 
     pdfmetrics.registerFont(
         TTFont(

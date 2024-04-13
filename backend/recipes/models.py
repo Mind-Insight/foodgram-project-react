@@ -128,6 +128,9 @@ class RecipeIngredient(models.Model):
         ],
     )
 
+    class Meta:
+        unique_together = ["recipe", "ingredient"]
+
 
 class Favorite(models.Model):
     user = models.ForeignKey(
@@ -147,6 +150,7 @@ class Favorite(models.Model):
         verbose_name = "Избранное"
         verbose_name_plural = "Избранное"
         default_related_name = "favorites"
+        unique_together = ["user", "recipe"]
         ordering = ("added",)
 
     def __str__(self):
@@ -171,3 +175,4 @@ class ShoppingList(models.Model):
         verbose_name = "КорзинаПокупок"
         verbose_name_plural = "КорзиныПокупок"
         default_related_name = "shopping_list"
+        unique_together = ["user", "recipe"]

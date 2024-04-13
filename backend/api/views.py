@@ -1,7 +1,6 @@
 from django.db.models import Exists, OuterRef, Count
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
 from django.db.models.aggregates import Sum
 from djoser.views import UserViewSet
@@ -10,7 +9,6 @@ from rest_framework.permissions import (
     AllowAny,
     IsAuthenticatedOrReadOnly,
 )
-from rest_framework import permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from django.contrib.auth import get_user_model
@@ -37,6 +35,7 @@ from .serializers import (
 )
 from .filters import IngredientFilter, RecipeFilter
 from .utils import get_pdf
+from .permissions import IsAuthorOrReadOnly
 
 User = get_user_model()
 
@@ -78,7 +77,7 @@ class UserViewSet(UserViewSet):
             )
         try:
             follow = Following.objects.get(user=request.user, author=author)
-        except ObjectDoesNotExist:
+        except Following.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         follow.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -112,18 +111,12 @@ class UserViewSet(UserViewSet):
         return Response(serializer.data)
 
 
-class IsAuthorOrReadOnly(permissions.BasePermission):
-    def has_object_permission(self, request, view, object):
-        return (
-            request.method in permissions.SAFE_METHODS
-            or object.author == request.user
-            and request.user.is_authenticated
-        )
-
-
 class RecipeViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "delete", "patch"]
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        IsAuthorOrReadOnly,
+    ]
     filterset_class = RecipeFilter
 
     def get_queryset(self):
@@ -144,7 +137,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def add_obj(self, serializer_class, request, pk):
         try:
             recipe = Recipe.objects.get(pk=pk)
-        except ObjectDoesNotExist:
+        except Recipe.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         serializer = serializer_class(
             data={"user": request.user.id, "recipe": recipe.id}
@@ -161,7 +154,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, pk=pk)
         try:
             item = model.objects.get(user=request.user, **{"recipe": recipe})
-        except ObjectDoesNotExist:
+        except model.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
