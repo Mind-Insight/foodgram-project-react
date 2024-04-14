@@ -129,7 +129,15 @@ class RecipeIngredient(models.Model):
     )
 
     class Meta:
-        unique_together = ["recipe", "ingredient"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "recipe",
+                    "ingredient",
+                ],
+                name="unique_recipeingredient",
+            )
+        ]
 
 
 class Favorite(models.Model):
@@ -149,9 +157,16 @@ class Favorite(models.Model):
     class Meta:
         verbose_name = "Избранное"
         verbose_name_plural = "Избранное"
-        default_related_name = "favorites"
-        unique_together = ["user", "recipe"]
         ordering = ("added",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "user",
+                    "recipe",
+                ],
+                name="unique_favorite",
+            )
+        ]
 
     def __str__(self):
         return f"{self.user} добавил в избранное рецепт {self.recipe}"
@@ -175,4 +190,12 @@ class ShoppingList(models.Model):
         verbose_name = "КорзинаПокупок"
         verbose_name_plural = "КорзиныПокупок"
         default_related_name = "shopping_list"
-        unique_together = ["user", "recipe"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "user",
+                    "recipe",
+                ],
+                name="unique_shoppinglist",
+            )
+        ]
