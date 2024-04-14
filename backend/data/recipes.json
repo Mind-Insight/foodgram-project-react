@@ -1,0 +1,143 @@
+[
+    {
+        "model": "recipes.recipe",
+        "pk": 1,
+        "fields": {
+            "author": 1,
+            "name": "Рецепт 1",
+            "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
+            "text": "Описание рецепта 1",
+            "cooking_time": 30,
+            "ingredients": [
+                {
+                    "ingredient": 2,
+                    "amount": 10
+                }
+            ],
+            "tags": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "model": "recipes.recipe",
+        "pk": 2,
+        "fields": {
+            "author": 1,
+            "name": "Рецепт 2",
+            "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
+            "text": "Описание рецепта 2",
+            "cooking_time": 45,
+            "ingredients": [
+                {
+                    "ingredient": 2,
+                    "amount": 5
+                }
+            ],
+            "tags": [
+                2
+            ]
+        }
+    },
+    {
+        "model": "recipes.recipe",
+        "pk": 3,
+        "fields": {
+            "author": 1,
+            "name": "Рецепт 3",
+            "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
+            "text": "Описание рецепта 3",
+            "cooking_time": 45,
+            "ingredients": [
+                {
+                    "ingredient": 3,
+                    "amount": 5
+                }
+            ],
+            "tags": [
+                3
+            ]
+        }
+    },
+    {
+        "model": "recipes.recipe",
+        "pk": 4,
+        "fields": {
+            "author": 1,
+            "name": "Рецепт 4",
+            "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
+            "text": "Описание рецепта 4",
+            "cooking_time": 45,
+            "ingredients": [
+                {
+                    "ingredient": 4,
+                    "amount": 5
+                }
+            ],
+            "tags": [
+                2
+            ]
+        }
+    },
+    {
+        "model": "recipes.recipe",
+        "pk": 5,
+        "fields": {
+            "author": 1,
+            "name": "Рецепт 5",
+            "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
+            "text": "Описание рецепта 5",
+            "cooking_time": 45,
+            "ingredients": [
+                {
+                    "ingredient": 5,
+                    "amount": 5
+                }
+            ],
+            "tags": [
+                1
+            ]
+        }
+    },
+    {
+        "model": "recipes.recipe",
+        "pk": 6,
+        "fields": {
+            "author": 1,
+            "name": "Рецепт 6",
+            "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
+            "text": "Описание рецепта 6",
+            "cooking_time": 45,
+            "ingredients": [
+                {
+                    "ingredient": 6,
+                    "amount": 5
+                }
+            ],
+            "tags": [
+                2
+            ]
+        }
+    },
+    {
+        "model": "recipes.recipe",
+        "pk": 7,
+        "fields": {
+            "author": 1,
+            "name": "Рецепт 7",
+            "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
+            "text": "Описание рецепта 7",
+            "cooking_time": 45,
+            "ingredients": [
+                {
+                    "ingredient": 7,
+                    "amount": 5
+                }
+            ],
+            "tags": [
+                3
+            ]
+        }
+    }
+]
