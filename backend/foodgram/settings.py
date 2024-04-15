@@ -11,7 +11,9 @@ SECRET_KEY = os.getenv("SECRET_KEY", "key")
 
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = os.getenv(
+    "ALLOWED_HOSTS", "localhost,127.0.0.1:8000", "127.0.0.1"
+).split(",")
 
 
 INSTALLED_APPS = [
@@ -47,6 +49,7 @@ AUTH_USER_MODEL = "users.FoodgramUser"
 
 DJOSER = {
     "SERIALIZERS": {
+        "user_create": "api.serializers.CustomUserCreateSerializer",
         "user": "api.serializers.CustomUserSerializer",
         "current_user": "api.serializers.CustomUserSerializer",
     },
