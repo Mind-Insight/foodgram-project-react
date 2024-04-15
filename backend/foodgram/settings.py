@@ -47,37 +47,6 @@ MIDDLEWARE = [
 
 AUTH_USER_MODEL = "users.FoodgramUser"
 
-DJOSER = {
-    "SERIALIZERS": {
-        "user_create": "api.serializers.CustomUserCreateSerializer",
-        "user": "api.serializers.CustomUserSerializer",
-        "current_user": "api.serializers.CustomUserSerializer",
-    },
-    "PERMISSIONS": {
-        "user_list": [
-            "rest_framework.permissions.AllowAny",
-        ],
-        "user": [
-            "rest_framework.permissions.AllowAny",
-        ],
-    },
-    "HIDE_USERS": False,
-}
-
-REST_FRAMEWORK = {
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
-    ],
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
-    ],
-    "DEFAULT_FILTER_BACKENDS": [
-        "django_filters.rest_framework.DjangoFilterBackend",
-    ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    "PAGE_SIZE": 6,
-}
-
 ROOT_URLCONF = "foodgram.urls"
 
 TEMPLATES = [
@@ -152,3 +121,34 @@ STRING_TITLE_Y = 800
 STRING_CONTENT_X = 50
 STRING_CONTENT_Y = 750
 LINE_OFFSET_CONTENT = 25
+
+DJOSER = {
+    "SERIALIZERS": {
+        "user_create": "api.serializers.CustomUserCreateSerializer",
+        "user": "api.serializers.CustomUserSerializer",
+        "current_user": "api.serializers.CustomUserSerializer",
+    },
+    "PERMISSIONS": {
+        "user_list": [
+            "rest_framework.permissions.AllowAny",
+        ],
+        "user": [
+            "rest_framework.permissions.AllowAny",
+        ],
+    },
+    "HIDE_USERS": False,
+}
+
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    # "DEFAULT_FILTER_BACKENDS": [
+    #     "django_filters.rest_framework.DjangoFilterBackend",
+    # ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    "PAGE_SIZE": 6,
+}

@@ -20,6 +20,7 @@ router.register(r"ingredients", IngredientViewSet, basename="ingredients")
 
 
 urlpatterns = [
+    path("", include(router.urls)),
     path(
         "recipes/download_shopping_cart/",
         ShoppingListViewSet.as_view(
@@ -28,7 +29,6 @@ urlpatterns = [
             },
         ),
     ),
-    path("", include(router.urls)),
     path("auth/", include("djoser.urls.authtoken")),
 ]
 
