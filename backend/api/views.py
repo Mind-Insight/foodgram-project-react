@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from django.db.models.aggregates import Sum
+from rest_framework.pagination import LimitOffsetPagination
 from djoser.views import UserViewSet
 from rest_framework.permissions import (
     IsAuthenticated,
@@ -117,6 +118,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         IsAuthenticatedOrReadOnly,
         IsAuthorOrReadOnly,
     ]
+    pagination_class = LimitOffsetPagination
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
     def get_queryset(self):

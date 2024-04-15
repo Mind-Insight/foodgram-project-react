@@ -50,4 +50,4 @@ docker compose exec backend python manage.py loaddata /app/foodgram/fixtures/tag
 После всех этих действий, проект будет доступен по адресу http://127.0.0.1.
 Удачного пользования!
 
-сайт находится на http://foodgrammm.servebeer.com:8000/
+сайт находится на https://foodgrammm.servebeer.com/
