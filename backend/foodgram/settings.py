@@ -9,11 +9,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", "key")
 
-DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+# DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+DEBUG = False
 
 ALLOWED_HOSTS = os.getenv(
     "ALLOWED_HOSTS", "localhost,127.0.0.1:8000,127.0.0.1",
 ).split(",")
+
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    'CSRF_TRUSTED_ORIGINS',
+    'https://127.0.0.1, https://localhost, '
+    'https://www.127.0.0.1, https://www.localhost'
+).split(', ')
 
 
 INSTALLED_APPS = [
@@ -77,6 +84,13 @@ DATABASES = {
         "PORT": os.getenv("DB_PORT", 5432),
     }
 }
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
