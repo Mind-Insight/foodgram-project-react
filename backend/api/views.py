@@ -112,13 +112,21 @@ class UserViewSet(UserViewSet):
         return Response(serializer.data)
 
 
+
+from rest_framework.pagination import PageNumberPagination
+
+
+class CustomPageNumberPagination(PageNumberPagination):
+    page_size_query_param = 'limit'
+
+
 class RecipeViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "delete", "patch"]
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         IsAuthorOrReadOnly,
     ]
-    pagination_class = LimitOffsetPagination
+    pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
