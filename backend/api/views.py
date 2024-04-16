@@ -3,7 +3,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from django.db.models.aggregates import Sum
-from rest_framework.pagination import LimitOffsetPagination
 from djoser.views import UserViewSet
 from rest_framework.permissions import (
     IsAuthenticated,
@@ -34,6 +33,7 @@ from .serializers import (
     RecipeSerializerCheck,
     SubscriptionsSerializer,
 )
+from .paginators import CustomPageNumberPagination
 from .filters import IngredientFilter, RecipeFilter
 from .utils import get_pdf
 from .permissions import IsAuthorOrReadOnly
@@ -110,14 +110,6 @@ class UserViewSet(UserViewSet):
             context={"request": request},
         )
         return Response(serializer.data)
-
-
-
-from rest_framework.pagination import PageNumberPagination
-
-
-class CustomPageNumberPagination(PageNumberPagination):
-    page_size_query_param = 'limit'
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
