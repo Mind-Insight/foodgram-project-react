@@ -27,7 +27,7 @@ class RecipeManager(Manager):
             .annotate(
                 is_subscribed=Exists(
                     queryset=Following.objects.filter(
-                        user=user, author=OuterRef("pk"))
+                        user=user, following=OuterRef("pk"))
                 )
             )
         )
