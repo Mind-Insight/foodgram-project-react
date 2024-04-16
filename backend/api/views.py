@@ -119,7 +119,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         IsAuthorOrReadOnly,
     ]
     pagination_class = CustomPageNumberPagination
-    filter_backends = (DjangoFilterBackend,)
+    # filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
     def get_queryset(self):
