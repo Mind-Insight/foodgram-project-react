@@ -7,13 +7,13 @@ volumes:
 
 services:
   db:
-    image: postgres:13
+    image: postgres:13.10
     volumes:
       - pg_data:/var/lib/postgresql/data
     env_file: .env
 
   backend:
-    image: platsajacki/foodgram_backend
+    image: xadr69/foodgram_backend
     build: ./backend/
     env_file: .env
     volumes:
@@ -23,7 +23,7 @@ services:
       - db
 
   frontend:
-    image: platsajacki/foodgram_frontend
+    image: xadr69/foodgram_frontend
     env_file: .env
     build: ./frontend/
     command: cp -r /app/build/. /static/
@@ -31,7 +31,7 @@ services:
       - static:/static
 
   gateway:
-    image: platsajacki/foodgram_gateway
+    image: xadr69/foodgram_gateway
     build: ./nginx/
     env_file: .env
     ports:
