@@ -22,7 +22,7 @@ from recipes.models import (
 )
 from users.models import Following
 from .filters import IngredientFilter, RecipeFilter
-from .permissions import IsAuthor
+from .permissions import IsAuthorOrReadOnly
 from .serializers import (
     TagSerializer,
     IngredientSerializer,
@@ -126,7 +126,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     http_method_names = ['get', 'post', 'delete', 'patch']
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthor)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthenticatedOrReadOnly)
     pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
