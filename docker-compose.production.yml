@@ -13,7 +13,7 @@ services:
     env_file: .env
 
   backend:
-    image: xadr69/foodgram_backend
+    image: ${{ secrets.DOCKER_USERNAME }}/foodgram_backend
     build: ./backend/
     env_file: .env
     volumes:
@@ -23,7 +23,7 @@ services:
       - db
 
   frontend:
-    image: xadr69/foodgram_frontend
+    image: ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend
     env_file: .env
     build: ./frontend/
     command: cp -r /app/build/. /static/
@@ -31,7 +31,7 @@ services:
       - static:/static
 
   gateway:
-    image: xadr69/foodgram_gateway
+    image: ${{ secrets.DOCKER_USERNAME }}/foodgram_gateway
     build: ./nginx/
     env_file: .env
     ports:
