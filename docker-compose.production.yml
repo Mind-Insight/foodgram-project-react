@@ -13,9 +13,9 @@ services:
     env_file: .env
 
   backend:
+    env_file: .env
     image: ${DOCKER_USERNAME}/foodgram_backend
     build: ./backend/
-    env_file: .env
     volumes:
       - static:/backend_static
       - media:/app/media
@@ -23,17 +23,17 @@ services:
       - db
 
   frontend:
-    image: ${DOCKER_USERNAME}/foodgram_frontend
     env_file: .env
+    image: ${DOCKER_USERNAME}/foodgram_frontend
     build: ./frontend/
     command: cp -r /app/build/. /static/
     volumes:
       - static:/static
 
   gateway:
+    env_file: .env
     image: ${DOCKER_USERNAME}/foodgram_gateway
     build: ./nginx/
-    env_file: .env
     ports:
       - 8000:80
     volumes:
