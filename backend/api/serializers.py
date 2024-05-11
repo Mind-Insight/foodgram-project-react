@@ -283,19 +283,24 @@ class RecipeSerializer(serializers.ModelSerializer):
             tags_ids.add(tag)
         return data
 
-    def create_ingredients(self, ingredients, recipe):
-        try:
-            RecipeIngredient.objects.bulk_create([
-                RecipeIngredient(
-                    ingredient=Ingredient.objects.get(pk=ingredient.get('id')),
-                    recipe=recipe,
-                    amount=ingredient.get('amount'),
-                ) for ingredient in ingredients]
+    def create_recipe_ingredients(self, recipe, ingredients_data):
+        all_ingredients = Ingredient.objects.filter(
+            id__in=[
+                ingredient_data["ingredient"]
+                for ingredient_data in ingredients_data
+            ]
+        )
+        recipe_ingredients = [
+            RecipeIngredient(
+                recipe=recipe,
+                ingredient=all_ingredients.get(
+                    id=ingredient_data["ingredient"]
+                ),
+                amount=ingredient_data["amount"],
             )
-        except ObjectDoesNotExist:
-            raise serializers.ValidationError(
-                'Указан не существующий ингредиент!'
-            )
+            for ingredient_data in ingredients_data
+        ]
+        RecipeIngredient.objects.bulk_create(recipe_ingredients)
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients', [])
