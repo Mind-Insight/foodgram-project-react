@@ -238,9 +238,13 @@ class RecipeSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-    def to_representation(self, instance):
-        return RecipeReadSerializer(instance).data
+    # def to_representation(self, instance):
+    #     return RecipeReadSerializer(instance).data
 
+    def to_representation(self, instance):
+            if isinstance(instance, Recipe):
+                serializer = RecipeReadSerializer(instance)
+            return serializer.data
 
 class RecipeSerializerCheck(serializers.ModelSerializer):
     class Meta:
