@@ -283,7 +283,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             tags_ids.add(tag)
         return data
 
-    def create_recipe_ingredients(self, recipe, ingredients_data):
+    def create_recipe_ingredients(self, ingredients_data, recipe):
         all_ingredients = Ingredient.objects.filter(
             id__in=[
                 ingredient_data["ingredient"]
