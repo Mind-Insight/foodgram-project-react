@@ -113,6 +113,7 @@ class UserViewSet(UserViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.all()
     http_method_names = ["get", "post", "delete", "patch"]
     permission_classes = [
         IsAuthenticatedOrReadOnly,
@@ -122,10 +123,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
-    def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            return Recipe.with_related.select_related("author")
-        return Recipe.with_related.get_correct_user(user=self.request.user)
+    # def get_queryset(self):
+    #     if not self.request.user.is_authenticated:
+    #         return Recipe.with_related.select_related("author")
+    #     return Recipe.with_related.get_correct_user(user=self.request.user)
 
     def get_serializer_class(self):
         if self.request.method == "GET":
