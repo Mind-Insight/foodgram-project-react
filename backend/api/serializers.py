@@ -197,30 +197,37 @@ class RecipeSerializer(serializers.ModelSerializer):
         return data
 
     def create_recipe_ingredients(self, recipe, ingredients_data):
-        all_ingredients = Ingredient.objects.filter(
-            id__in=[
-                ingredient_data["ingredient"]
-                for ingredient_data in ingredients_data
-            ]
-        )
-        recipe_ingredients = [
+        RecipeIngredient.objects.bulk_create([
             RecipeIngredient(
+                ingredient=Ingredient.objects.get(pk=ingredient.get('id')),
                 recipe=recipe,
-                ingredient=all_ingredients.get(
-                    id=ingredient_data["ingredient"]
-                ),
-                amount=ingredient_data["amount"],
-            )
-            for ingredient_data in ingredients_data
-        ]
-        RecipeIngredient.objects.bulk_create(recipe_ingredients)
+                amount=ingredient.get('amount'),
+            ) for ingredient in ingredients_data]
+        )
+        # all_ingredients = Ingredient.objects.filter(
+        #     id__in=[
+        #         ingredient_data["ingredient"]
+        #         for ingredient_data in ingredients_data
+        #     ]
+        # )
+        # recipe_ingredients = [
+        #     RecipeIngredient(
+        #         recipe=recipe,
+        #         ingredient=all_ingredients.get(
+        #             id=ingredient_data["ingredient"]
+        #         ),
+        #         amount=ingredient_data["amount"],
+        #     )
+        #     for ingredient_data in ingredients_data
+        # ]
+        # RecipeIngredient.objects.bulk_create(recipe_ingredients)
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop("ingredients")
         tags_data = validated_data.pop("tags")
         recipe = Recipe.objects.create(**validated_data)
-        self.create_recipe_ingredients(recipe, ingredients_data)
         recipe.tags.set(tags_data)
+        self.create_recipe_ingredients(recipe, ingredients_data)
         return recipe
 
     def update(self, instance, validated_data):
