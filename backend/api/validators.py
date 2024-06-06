@@ -29,7 +29,9 @@ def tags_validator(attrs):
 
 def check_following(attrs):
     if attrs.get("user") == attrs.get("author"):
-        raise serializers.ValidationError("Вы уже подписаны на этого пользователя")
+        raise serializers.ValidationError(
+            "Вы уже подписаны на этого пользователя"
+        )
     return attrs
 
 

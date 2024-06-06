@@ -13,7 +13,10 @@ def get_pdf(ingredient_list):
     response["Content-Disposition"] = VALUE
 
     pdfmetrics.registerFont(
-        TTFont("Times", f"{settings.BASE_DIR}/fonts/timesnewromanpsmt.ttf", "UTF-8")
+        TTFont(
+            "Times",
+            f"{settings.BASE_DIR}/fonts/timesnewromanpsmt.ttf", "UTF-8"
+        )
     )
 
     p = canvas.Canvas(response)

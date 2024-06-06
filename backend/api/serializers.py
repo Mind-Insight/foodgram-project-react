@@ -189,7 +189,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             RecipeIngredient.objects.get(recipe=recipe).delete()
         recipe_ingredients = [
             RecipeIngredient(
-                ingredient=Ingredient.objects.get(pk=ingredient_data.get("id")),
+                ingredient=Ingredient.objects.get(
+                    pk=ingredient_data.get("id")
+                ),
                 recipe=recipe,
                 amount=ingredient_data["amount"],
             )

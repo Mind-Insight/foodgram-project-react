@@ -5,7 +5,9 @@ from django.core.management.base import BaseCommand
 
 from foodgram.settings import BASE_DIR
 from recipes.models import Ingredient
+
 DATA_DIR = f'{BASE_DIR}/data'
+
 
 class Command(BaseCommand):
     help = 'Импортирует данные из csv-файлов в базу данных'
