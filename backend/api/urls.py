@@ -6,7 +6,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     RecipeViewSet,
     TagViewSet,
-    UserViewSet,
+    CustomUserViewSet,
     IngredientViewSet,
     ShoppingListViewSet,
 )
@@ -15,12 +15,11 @@ from .views import (
 router = DefaultRouter()
 router.register(r"recipes", RecipeViewSet, basename="recipes")
 router.register(r"tags", TagViewSet, basename="tags")
-router.register(r"users", UserViewSet, basename="users")
+router.register(r"users", CustomUserViewSet, basename="users")
 router.register(r"ingredients", IngredientViewSet, basename="ingredients")
 
 
 urlpatterns = [
-    path("", include(router.urls)),
     path(
         "recipes/download_shopping_cart/",
         ShoppingListViewSet.as_view(
@@ -29,11 +28,9 @@ urlpatterns = [
             },
         ),
     ),
+    path("", include(router.urls)),
     path("auth/", include("djoser.urls.authtoken")),
 ]
 
 if settings.DEBUG:
-    urlpatterns += static(
-        settings.MEDIA_URL,
-        document_root=settings.MEDIA_ROOT
-    )
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

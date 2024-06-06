@@ -1,18 +1,17 @@
 from django.db.models import Exists, OuterRef, Count
-from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from django.db.models.aggregates import Sum
-from rest_framework.pagination import LimitOffsetPagination
 from djoser.views import UserViewSet
 from rest_framework.permissions import (
+    IsAuthenticatedOrReadOnly,
     IsAuthenticated,
     AllowAny,
-    IsAuthenticatedOrReadOnly,
 )
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 
 from users.models import Following
 from recipes.models import (
@@ -23,7 +22,7 @@ from recipes.models import (
     ShoppingList,
 )
 from .serializers import (
-    CustomUserSerializer,
+    UserSerializer,
     RecipeSerializer,
     TagSerializer,
     IngredientSerializer,
@@ -37,12 +36,12 @@ from .serializers import (
 from .filters import IngredientFilter, RecipeFilter
 from .utils import get_pdf
 from .permissions import IsAuthorOrReadOnly
+from .paginators import CustomPaginator
 
 User = get_user_model()
 
 
-class UserViewSet(UserViewSet):
-
+class CustomUserViewSet(UserViewSet):
     def get_queryset(self):
         return User.objects.all()
 
@@ -52,7 +51,7 @@ class UserViewSet(UserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def me(self, request):
-        serializer = CustomUserSerializer(request.user)
+        serializer = UserSerializer(request.user)
         return Response(data=serializer.data)
 
     @action(
@@ -91,10 +90,8 @@ class UserViewSet(UserViewSet):
         subscriptions = User.objects.filter(following__user=request.user.id)
         limit = self.request.GET.get("limit")
         if limit is not None:
-            subscriptions = User.objects.filter(
-                following__user=request.user.id
-            )[
-                :int(limit)
+            subscriptions = User.objects.filter(following__user=request.user.id)[
+                : int(limit)
             ]
         page = self.paginate_queryset(subscriptions)
         if page is not None:
@@ -119,12 +116,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         IsAuthenticatedOrReadOnly,
         IsAuthorOrReadOnly,
     ]
-    pagination_class = LimitOffsetPagination
+    pagination_class = CustomPaginator
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        if self.request.method == "GET":
+        if self.action == "list":
             return RecipeReadSerializer
         return RecipeSerializer
 
@@ -188,8 +185,10 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     pagination_class = None
     permission_classes = [AllowAny]
-    search_field = ("name",)
-    filter_backends = [DjangoFilterBackend]
+    search_fields = ("name",)
+    filter_backends = [
+        DjangoFilterBackend,
+    ]
     filterset_class = IngredientFilter
 
 

@@ -3,8 +3,6 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 
-from .managers import RecipeManager
-
 User = get_user_model()
 
 
@@ -13,7 +11,7 @@ class Recipe(models.Model):
         User,
         on_delete=models.CASCADE,
         verbose_name="Автор рецепта",
-        related_name="recipes",
+        related_name="recipe",
     )
     name = models.CharField(
         "Название",
@@ -29,12 +27,11 @@ class Recipe(models.Model):
     )
     ingredients = models.ManyToManyField(
         "Ingredient",
-        related_name="recipes",
         through="RecipeIngredient",
     )
     tags = models.ManyToManyField(
         "Tag",
-        related_name="recipes",
+        related_name="recipe",
     )
     cooking_time = models.SmallIntegerField(
         "Время приготовления",
@@ -43,8 +40,6 @@ class Recipe(models.Model):
             MaxValueValidator(420),
         ],
     )
-    objects = models.Manager()
-    with_related = RecipeManager()
 
     class Meta:
         verbose_name = "Рецепт"
@@ -73,8 +68,7 @@ class Tag(models.Model):
 
     def clean(self):
         if len(set([self.name, self.color, self.slug])) != 3:
-            raise ValidationError("Значения всех трех "
-                                  "полей должны быть различными.")
+            raise ValidationError("Значения всех трех " "полей должны быть различными.")
         super().clean()
 
     def save(self, *args, **kwargs):
@@ -158,6 +152,7 @@ class Favorite(models.Model):
         verbose_name = "Избранное"
         verbose_name_plural = "Избранное"
         ordering = ("added",)
+        default_related_name = "favorite"
         constraints = [
             models.UniqueConstraint(
                 fields=[

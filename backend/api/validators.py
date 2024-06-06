@@ -14,7 +14,6 @@ def ingredients_validator(attrs):
         ingredient_id = ingredient.get("ingredient")
         if ingredient_id in unique_ingredients_ids:
             raise ValidationError("Ингредиенты должны быть уникальными.")
-        unique_ingredients_ids.add(ingredient_id)
 
 
 def tags_validator(attrs):
@@ -30,9 +29,7 @@ def tags_validator(attrs):
 
 def check_following(attrs):
     if attrs.get("user") == attrs.get("author"):
-        raise serializers.ValidationError(
-            "Вы уже подписаны на этого пользователя"
-        )
+        raise serializers.ValidationError("Вы уже подписаны на этого пользователя")
     return attrs
 
 

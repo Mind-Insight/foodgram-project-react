@@ -1,10 +1,10 @@
 from django_filters.rest_framework import FilterSet
 from django_filters import rest_framework
 
-from recipes.models import Ingredient, Recipe, Tag
+from recipes.models import Recipe, Tag, Ingredient
 
 
-class RecipeFilter(rest_framework.FilterSet):
+class RecipeFilter(FilterSet):
     author = rest_framework.NumberFilter(
         field_name="author__id",
     )
@@ -13,21 +13,19 @@ class RecipeFilter(rest_framework.FilterSet):
         to_field_name="slug",
         queryset=Tag.objects.all(),
     )
-    is_favorited = rest_framework.BooleanFilter(
-        method="filter_is_favorited",
-    )
+    is_favorited = rest_framework.BooleanFilter(method="filter_is_favorited")
     is_in_shopping_cart = rest_framework.BooleanFilter(
         method="filter_is_in_shopping_cart",
     )
 
     def filter_is_favorited(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
-            return queryset.filter(is_favorited=True)
+            return queryset.filter(favorite__user=self.request.user)
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
-            return queryset.filter(is_in_shopping_cart=True)
+            return queryset.filter(shopping_list__user=self.request.user)
         return queryset
 
     class Meta:
@@ -41,7 +39,7 @@ class RecipeFilter(rest_framework.FilterSet):
 class IngredientFilter(FilterSet):
     name = rest_framework.CharFilter(
         field_name="name",
-        lookup_expr="istartswith"
+        lookup_expr="istartswith",
     )
 
     class Meta:
