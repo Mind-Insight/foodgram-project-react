@@ -29,7 +29,9 @@ def tags_validator(attrs):
 
 def check_following(attrs):
     if attrs.get("user") == attrs.get("author"):
-        raise serializers.ValidationError("Вы уже подписаны на этого пользователя")
+        raise serializers.ValidationError(
+            "Вы уже подписаны на этого пользователя"
+        )
     return attrs
 
 
@@ -57,4 +59,6 @@ def validate_exist_user(attrs):
             "Пользователь с таким username уже существует"
         )
     if User.objects.filter(email=email):
-        raise serializers.ValidationError("Пользователь с таким email уже существует")
+        raise serializers.ValidationError(
+            "Пользователь с таким email уже существует"
+        )
