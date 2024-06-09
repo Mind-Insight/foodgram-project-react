@@ -53,10 +53,8 @@ def validate_exist_user(attrs):
     username = attrs.get("username")
     email = attrs.get("email")
     if User.objects.filter(username=username):
-            raise serializers.ValidationError(
-                "Пользователь с таким username уже существует"
-            )
-    if User.objects.filter(email=email):
         raise serializers.ValidationError(
-            "Пользователь с таким email уже существует"
+            "Пользователь с таким username уже существует"
         )
+    if User.objects.filter(email=email):
+        raise serializers.ValidationError("Пользователь с таким email уже существует")
