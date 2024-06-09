@@ -29,12 +29,34 @@ def tags_validator(attrs):
 
 def check_following(attrs):
     if attrs.get("user") == attrs.get("author"):
-        raise serializers.ValidationError(
-            "Вы уже подписаны на этого пользователя"
-        )
+        raise serializers.ValidationError("Вы уже подписаны на этого пользователя")
     return attrs
 
 
 def valid_username(attrs):
     if attrs.get("username") == "me":
         raise serializers.ValidationError("Использовать имя me запрещено")
+
+
+def validate_user_fields(attrs):
+    first_name = attrs.get("first_name")
+    last_name = attrs.get("last_name")
+    username = attrs.get("username")
+    if len(set([first_name, last_name, username])) != 3:
+        raise ValidationError(
+            "Поля username, name, surname должны "
+            "быть уникальными в пределах одной записи"
+        )
+
+
+def validate_exist_user(attrs):
+    username = attrs.get("username")
+    email = attrs.get("email")
+    if User.objects.filter(username=username):
+            raise serializers.ValidationError(
+                "Пользователь с таким username уже существует"
+            )
+    if User.objects.filter(email=email):
+        raise serializers.ValidationError(
+            "Пользователь с таким email уже существует"
+        )

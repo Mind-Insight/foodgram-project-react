@@ -20,6 +20,8 @@ from .validators import (
     ingredients_validator,
     tags_validator,
     valid_username,
+    validate_user_fields,
+    validate_exist_user,
 )
 from .fields import Base64ImageField
 
@@ -40,15 +42,9 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         extra_kwargs = {"password": {"write_only": True}}
 
     def validate(self, data):
+        validate_user_fields(data)
         valid_username(data)
-        if User.objects.filter(username=data.get("username")):
-            raise serializers.ValidationError(
-                "Пользователь с таким username уже существует"
-            )
-        if User.objects.filter(email=data.get("email")):
-            raise serializers.ValidationError(
-                "Пользователь с таким email уже существует"
-            )
+        validate_exist_user(data)
         return data
 
 
@@ -65,11 +61,6 @@ class CustomUserSerializer(UserSerializer):
             "last_name",
             "is_subscribed",
         )
-
-    def validate(self, data):
-        valid_username(data)
-        check_following(data)
-        return data
 
     def get_is_subscribed(self, obj):
         request = self.context.get("request")

@@ -22,7 +22,7 @@ from recipes.models import (
     ShoppingList,
 )
 from .serializers import (
-    UserSerializer,
+    CustomUserSerializer,
     RecipeSerializer,
     TagSerializer,
     IngredientSerializer,
@@ -42,8 +42,8 @@ User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
-    def get_queryset(self):
-        return User.objects.all()
+    queryset = User.objects.all()
+    serializer_class = CustomUserSerializer
 
     @action(
         ["GET"],
@@ -51,7 +51,7 @@ class CustomUserViewSet(UserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def me(self, request):
-        serializer = UserSerializer(request.user)
+        serializer = CustomUserSerializer(request.user)
         return Response(data=serializer.data)
 
     @action(
