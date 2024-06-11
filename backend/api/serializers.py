@@ -120,8 +120,8 @@ class RecipeIngredientReadField(serializers.ModelSerializer):
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
-    ingredients = RecipeIngredientReadField(many=True, source="recipe")
-    tags = TagSerializer(read_only=True, many=True)
+    ingredients = RecipeIngredientReadField(source="recipe", many=True)
+    tags = TagSerializer(many=True, read_only=True)
     image = Base64ImageField()
     author = CustomUserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField(read_only=True)
@@ -176,8 +176,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         validators = [ingredients_validator, tags_validator]
 
     def create_recipe_ingredients(self, recipe, ingredients_data):
-        if self.context["request"].method == "PATCH":
-            RecipeIngredient.objects.get(recipe=recipe).delete()
+        # if self.context["request"].method == "PATCH":
+        #     Recipe.objects.get(recipe=recipe).delete()
         recipe_ingredients = [
             RecipeIngredient(
                 ingredient=Ingredient.objects.get(
@@ -209,6 +209,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         tags = validated_data.get("tags")
         ingredients_data = validated_data.pop("ingredients")
         instance.tags.set(tags)
+        RecipeIngredient.objects.filter(recipe=instance).delete()
         self.create_recipe_ingredients(instance, ingredients_data)
         instance.save()
         return instance
