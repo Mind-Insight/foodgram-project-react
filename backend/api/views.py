@@ -121,7 +121,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action in ["list", "retrieve"]:
             return RecipeReadSerializer
         return RecipeSerializer
 
