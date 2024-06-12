@@ -176,17 +176,19 @@ class RecipeSerializer(serializers.ModelSerializer):
         validators = [ingredients_validator, tags_validator]
 
     def create_recipe_ingredients(self, recipe, ingredients_data):
-        # if self.context["request"].method == "PATCH":
-        #     Recipe.objects.get(recipe=recipe).delete()
+        res = []
+        seen = set()
+        for d in ingredients_data:
+            if d["id"] not in seen:
+                res.append(d)
+                seen.add(d["id"])
         recipe_ingredients = [
             RecipeIngredient(
-                ingredient=Ingredient.objects.get(
-                    pk=ingredient_data.get("id")
-                ),
+                ingredient_id=ingredient_data["id"],
                 recipe=recipe,
                 amount=ingredient_data["amount"],
             )
-            for ingredient_data in ingredients_data
+            for ingredient_data in res
         ]
         RecipeIngredient.objects.bulk_create(recipe_ingredients)
 
@@ -199,16 +201,11 @@ class RecipeSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        instance.image = validated_data.get("image", instance.image)
-        instance.name = validated_data.get("name", instance.name)
-        instance.text = validated_data.get("text", instance.text)
-        instance.cooking_time = validated_data.get(
-            "cooking_time",
-            instance.cooking_time,
-        )
         tags = validated_data.get("tags")
         ingredients_data = validated_data.pop("ingredients")
+        instance = super().update(instance, validated_data)
         instance.tags.set(tags)
+        instance.ingredients.clear()
         RecipeIngredient.objects.filter(recipe=instance).delete()
         self.create_recipe_ingredients(instance, ingredients_data)
         instance.save()
@@ -310,3 +307,9 @@ class ShoppingListSerializer(serializers.ModelSerializer):
                 message="Рецепт уже добавлен в корзину",
             )
         ]
+
+        def create(self, validated_data):
+            return ShoppingList.objects.create(
+                user=self.context["request"].user,
+                recipe=validated_data["recipe"],
+            )

@@ -20,18 +20,6 @@ class FoodgramUser(AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username", "first_name", "last_name"]
 
-    # def clean(self):
-    #     if len(set([self.username, self.first_name, self.last_name])) != 3:
-    #         raise ValidationError(
-    #             "Поля username, name, surname должны "
-    #             "быть уникальными в пределах одной записи"
-    #         )
-    #     super().clean()
-
-    # def save(self, *args, **kwargs):
-    #     self.full_clean()
-    #     super().save(*args, **kwargs)
-
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
