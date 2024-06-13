@@ -2,6 +2,8 @@ from rest_framework.serializers import ValidationError
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
+from recipes.models import Ingredient
+
 User = get_user_model()
 
 
@@ -9,11 +11,12 @@ def ingredients_validator(attrs):
     ingredients = attrs.get("ingredients", [])
     if not ingredients:
         raise ValidationError("Должен присутствовать хотя бы один ингредиент.")
-    unique_ingredients_ids = set()
+    unique_ingredients_ids = list()
     for ingredient in ingredients:
-        ingredient_id = ingredient.get("ingredient")
-        if ingredient_id in unique_ingredients_ids:
+        ingredient = Ingredient.objects.get(id=ingredient["id"])
+        if ingredient in unique_ingredients_ids:
             raise ValidationError("Ингредиенты должны быть уникальными.")
+        unique_ingredients_ids.append(ingredient)
 
 
 def tags_validator(attrs):

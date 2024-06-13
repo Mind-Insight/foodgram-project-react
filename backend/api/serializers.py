@@ -176,19 +176,13 @@ class RecipeSerializer(serializers.ModelSerializer):
         validators = [ingredients_validator, tags_validator]
 
     def create_recipe_ingredients(self, recipe, ingredients_data):
-        res = []
-        seen = set()
-        for d in ingredients_data:
-            if d["id"] not in seen:
-                res.append(d)
-                seen.add(d["id"])
         recipe_ingredients = [
             RecipeIngredient(
                 ingredient_id=ingredient_data["id"],
                 recipe=recipe,
                 amount=ingredient_data["amount"],
             )
-            for ingredient_data in res
+            for ingredient_data in ingredients_data
         ]
         RecipeIngredient.objects.bulk_create(recipe_ingredients)
 
@@ -206,9 +200,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         instance = super().update(instance, validated_data)
         instance.tags.set(tags)
         instance.ingredients.clear()
-        RecipeIngredient.objects.filter(recipe=instance).delete()
         self.create_recipe_ingredients(instance, ingredients_data)
-        instance.save()
         return instance
 
     def to_representation(self, instance):
